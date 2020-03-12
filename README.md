@@ -12,3 +12,5 @@ Omnichord is a tool to help you learn your chords
   - [ ] mobile
   - [ ] UI to customise keyboard width
   - [ ] Customise colour
+  - [ ] Suggest your own chords via intervals, names, and symbols
+  - [ ] Interface to add chord type via midi
