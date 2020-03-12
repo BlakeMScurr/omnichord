@@ -197,13 +197,42 @@ class Chord {
         var abstractNotes = [];
         notes.forEach((isPressed, note, map) => {
             if (isPressed) {
-                // strip octave digit
-                var abstractNote = note.substring(0, note.search(/\d/))
-                if (abstractNote != "")  {
-                    abstractNotes.push(abstractNote)
-                }
+                abstractNotes.push(note)
             }
         });
+
+        var strip = function(note) {
+            var stripped = note.substring(0, note.search(/\d/))
+            if (stripped == "") {
+                throw "note stripped of its octave is empty"
+            }
+            return note.substring(0, note.search(/\d/))
+        } 
+
+        abstractNotes.sort((a,b) => {
+            // sort by octave
+            var aoctave = a[a.search(/\d/)]
+            var boctave = b[b.search(/\d/)]
+
+            if (aoctave < boctave) {
+                return -1
+            } else if (aoctave > boctave) {
+                return 1
+            } else {
+                // TODO: handle the fact that the starting note of the octaves may change where the note order ought to start
+                if(noteOrder.indexOf(strip(a)) < noteOrder.indexOf(strip(b))) {
+                    return -1
+                }
+                return 1
+            }
+        })
+
+        // remove octave digit
+        abstractNotes.forEach((note, index) => {
+            abstractNotes[index] = strip(note)
+        })
+
+        console.log(abstractNotes)
 
         // check notes against chord
         // TODO: perhaps more detailed help notes
@@ -250,11 +279,9 @@ chords = new ChordSet(
 )
 
 const options = {
-    keys: octavesFrom("c", 1),
+    keys: octavesFrom("c", 3),
     chords: chords,
 }
-
-console.log(options.chords)
 
 const piano = new Piano(document.querySelector("#piano"), options);
 
