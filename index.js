@@ -1,3 +1,5 @@
+const WebMidi = window.WebMidi
+
 class ChordSet {
     constructor (chords, onComplete) {
         this.chords = chords
@@ -169,13 +171,12 @@ class Piano {
 
 const noteOrder = ["c","c#","d","d#","e","f","f#","g","g#","a","a#","b"]
 
-function octavesFrom(note, octavesLeft) {
+function octavesFrom(note, octave, octavesLeft) {
     if (!white(note)) {
         throw "the notes on a keyboard must start from a white note, otherwise there'll be a weird half note space at the end of the keyboard"
     }
 
     var notes = [];
-    var octave = 0;
     while (octavesLeft > 0) {
         var notesLeft = 12
         while (notesLeft > 0) {
@@ -186,6 +187,7 @@ function octavesFrom(note, octavesLeft) {
         octavesLeft--
         octave++
     }
+
     notes.push(note + octave)
     return notes
 }
@@ -288,12 +290,13 @@ chords = new ChordSet(
 )
 
 const options = {
-    keys: octavesFrom("c", 3),
+    keys: octavesFrom("c", 4, 3),
     chords: chords,
 }
 
 const piano = new Piano(document.querySelector("#piano"), options);
 
+// Setup interactions
 document.addEventListener('keydown', (event) => {
     piano.keyDown(event)
 });
@@ -302,5 +305,21 @@ document.addEventListener('keyup', (event) => {
     piano.keyUp(event)
 });
 
+WebMidi.enable(function (err) {
+    if (err) {
+        console.log("WebMidi could not be enabled.", err);
+    }
+    // TODO: make sure we get the right input by checking all possible inputs
+    WebMidi.inputs[0].addListener('noteon', "all",
+    function (e) {
+      piano.pressKey(e.note.name.toLocaleLowerCase() + e.note.octave)
+    });
+    WebMidi.inputs[0].addListener('noteoff', "all",
+    function (e) {
+        piano.releaseKey(e.note.name.toLocaleLowerCase() + e.note.octave)
+    });
+});
+
+// initial rendering
 piano.render();
 chords.render();
