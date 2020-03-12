@@ -20,3 +20,10 @@ Omnichord is a tool to help you learn your chords. Try it here https://blakemscu
   - [ ] Voicing independent chords
   - [ ] Voicing groupings
   - [ ] Chord recogniser
+  - [ ] Share chord patterns with simple share link
+  - [ ] Discover chord patterns
+  - [ ] Add accounts, save private patterns to them
+  - [ ] Private the code and use a server
+  - [ ] Annotate embedded soundcloud or youtube
+  - [ ] Transpose
+  - [ ] Suggest flat names for certain chords (i.e., Bb not A#)
