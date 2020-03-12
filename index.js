@@ -86,8 +86,10 @@ class Piano {
     }
 
     CheckSuccess() {
-        if (this.chords.getCurrent().equals(this.pressed)) {
-            this.chords.complete()
+        if (!this.chords.isComplete()) {
+            if (this.chords.getCurrent().equals(this.pressed)) {
+                this.chords.completeNext()
+            }
         }
     }
     
@@ -98,7 +100,7 @@ class Piano {
     }
 
     releaseKey(note) {
-        this.pressed.set(note, false)
+        this.pressed.delete(note)
         this.render()
         this.CheckSuccess()
     }

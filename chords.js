@@ -111,10 +111,13 @@ class ChordSet {
         }
     }
 
-    complete() {
+    isComplete() {
+        return this.current >= this.chords.length
+    }
+
+    completeNext() {
         this.current++
         this.render()
-        console.log("complete!")
     }
 
     render() {
