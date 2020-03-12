@@ -1,37 +1,4 @@
-const WebMidi = window.WebMidi
-
-class ChordSet {
-    constructor (chords, onComplete) {
-        this.chords = chords
-        this.onComplete = onComplete
-        this.current = 0
-    }
-
-    getCurrent() {
-        if (this.current < this.chords.length) {
-            return this.chords[this.current]
-        }
-    }
-
-    complete() {
-        this.current++
-        this.render()
-        console.log("complete!")
-    }
-
-    render() {
-        var desc = "";
-        this.chords.forEach((chord, i) => {
-            if (i < this.current) {
-                desc += chord.name.strike() + ", "
-            } else {
-                desc += chord.name + ", "
-            }
-        })
-        desc = desc.substr(0, desc.lastIndexOf(", "))
-        document.querySelector("#chords").innerHTML = desc
-    }
-}
+const WebMidi = window.WebMidi;
 
 // TODO: merge with blackKeys
 function whiteKeys(keys) {
@@ -192,100 +159,11 @@ function octavesFrom(note, octave, octavesLeft) {
     return notes
 }
 
-class Chord {
-    constructor(note, name) {
-        this.name = name
-        this.root = note
-        this.highest = note
-        this.notes = [note]
-    }
-
-    stack(interval) {
-        var index = (noteOrder.indexOf(this.highest) + semitonesIn(interval)) % 12
-        var newNote = noteOrder[index]
-        this.notes.push(newNote)
-        this.highest = newNote
-        return this
-    }
-
-    equals(notes) {
-        // cajole map of octaved notes into the abstract
-        var abstractNotes = [];
-        notes.forEach((isPressed, note, map) => {
-            if (isPressed) {
-                abstractNotes.push(note)
-            }
-        });
-
-        var strip = function(note) {
-            var stripped = note.substring(0, note.search(/\d/))
-            if (stripped == "") {
-                throw "note stripped of its octave is empty"
-            }
-            return note.substring(0, note.search(/\d/))
-        } 
-
-        abstractNotes.sort((a,b) => {
-            // sort by octave
-            var aoctave = a[a.search(/\d/)]
-            var boctave = b[b.search(/\d/)]
-
-            if (aoctave < boctave) {
-                return -1
-            } else if (aoctave > boctave) {
-                return 1
-            } else {
-                // TODO: handle the fact that the starting note of the octaves may change where the note order ought to start
-                if(noteOrder.indexOf(strip(a)) < noteOrder.indexOf(strip(b))) {
-                    return -1
-                }
-                return 1
-            }
-        })
-
-        // remove octave digit
-        abstractNotes.forEach((note, index) => {
-            abstractNotes[index] = strip(note)
-        })
-
-        // check notes against chord
-        // TODO: perhaps more detailed help notes
-        for (var i = 0; i < this.notes.length; i++) {
-            if (this.notes[i] != abstractNotes[i]) {
-                return false
-            }
-        }
-
-        return true
-    }
-}
-
-class ChordBook {
-    constructor () {}
-
-    // TODO: handle different octaves
-    majorTriad(root) {
-        var chord = new Chord(root, root + " major");
-        chord.stack("maj3").stack("min3")
-        return chord
-    }
-    
-}
-
-function semitonesIn(interval) {
-    switch (interval) {
-        case "maj3":
-            return 4
-        case "min3":
-            return 3
-    }
-}
-
 book = new ChordBook()
 chords = new ChordSet(
     [
-        book.majorTriad("c"),
-        book.majorTriad("d")
+        book.make("c", ""),
+        book.make("d", "")
     ],
 )
 
