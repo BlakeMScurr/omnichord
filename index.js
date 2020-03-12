@@ -12,8 +12,22 @@ class ChordSet {
     }
 
     complete() {
-        this.onComplete(this.getCurrent())
         this.current++
+        this.render()
+        console.log("complete!")
+    }
+
+    render() {
+        var desc = "";
+        this.chords.forEach((chord, i) => {
+            if (i < this.current) {
+                desc += chord.name.strike() + ", "
+            } else {
+                desc += chord.name + ", "
+            }
+        })
+        desc = desc.substr(0, desc.lastIndexOf(", "))
+        document.querySelector("#chords").innerHTML = desc
     }
 }
 
@@ -232,8 +246,6 @@ class Chord {
             abstractNotes[index] = strip(note)
         })
 
-        console.log(abstractNotes)
-
         // check notes against chord
         // TODO: perhaps more detailed help notes
         for (var i = 0; i < this.notes.length; i++) {
@@ -273,9 +285,6 @@ chords = new ChordSet(
         book.majorTriad("c"),
         book.majorTriad("d")
     ],
-    function(chord) {
-        alert("you just successfully played " + chord.name)
-    }
 )
 
 const options = {
@@ -288,8 +297,10 @@ const piano = new Piano(document.querySelector("#piano"), options);
 document.addEventListener('keydown', (event) => {
     piano.keyDown(event)
 });
+
 document.addEventListener('keyup', (event) => {
     piano.keyUp(event)
 });
 
 piano.render();
+chords.render();
