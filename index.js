@@ -1,3 +1,22 @@
+class ChordSet {
+    constructor (chords, onComplete) {
+        this.chords = chords
+        this.onComplete = onComplete
+        this.current = 0
+    }
+
+    getCurrent() {
+        if (this.current < this.chords.length) {
+            return this.chords[this.current]
+        }
+    }
+
+    complete() {
+        this.onComplete(this.getCurrent())
+        this.current++
+    }
+}
+
 // TODO: merge with blackKeys
 function whiteKeys(keys) {
     let whites = [];
@@ -46,6 +65,7 @@ class Piano {
         this.height = 300;
         this.canvas.width = this.width
         this.canvas.height = this.height
+        this.chords = options.chords
     }
 
     render() {
@@ -56,7 +76,7 @@ class Piano {
         var x = 0;
         this.keys.forEach(key => {
             this.context.fillStyle = "#FFFFFF";
-            if (this.pressed[key]) {
+            if (this.pressed.get(key)) {
                 this.context.fillStyle = "#00FF00";
             }
 
@@ -70,7 +90,7 @@ class Piano {
         var x = 0;
         this.keys.forEach(key => {
             this.context.fillStyle = "#000000";
-            if (this.pressed[key]) {
+            if (this.pressed.get(key)) {
                 this.context.fillStyle = "#00FF00";
             }
 
@@ -81,17 +101,23 @@ class Piano {
             }
         });
     }
+
+    CheckSuccess() {
+        if (this.chords.getCurrent().equals(this.pressed)) {
+            this.chords.complete()
+        }
+    }
     
     pressKey(note) {
-        this.pressed[note] = true
+        this.pressed.set(note, true)
         this.render()
+        this.CheckSuccess()
     }
 
     releaseKey(note) {
-        this.pressed[note] = false
-        console.log("released and re-rendering")
-        console.log(this.pressed)
+        this.pressed.set(note, false)
         this.render()
+        this.CheckSuccess()
     }
 
     // Handles computer keyboard note playing
@@ -127,12 +153,13 @@ class Piano {
     }
 }
 
+const noteOrder = ["c","c#","d","d#","e","f","f#","g","g#","a","a#","b"]
+
 function octavesFrom(note, octavesLeft) {
     if (!white(note)) {
         throw "the notes on a keyboard must start from a white note, otherwise there'll be a weird half note space at the end of the keyboard"
     }
 
-    var noteOrder = ["c","c#","d","d#","e","f","f#","g","g#","a","a#","b"]
     var notes = [];
     var octave = 0;
     while (octavesLeft > 0) {
@@ -149,9 +176,85 @@ function octavesFrom(note, octavesLeft) {
     return notes
 }
 
+class Chord {
+    constructor(note, name) {
+        this.name = name
+        this.root = note
+        this.highest = note
+        this.notes = [note]
+    }
+
+    stack(interval) {
+        var index = (noteOrder.indexOf(this.highest) + semitonesIn(interval)) % 12
+        var newNote = noteOrder[index]
+        this.notes.push(newNote)
+        this.highest = newNote
+        return this
+    }
+
+    equals(notes) {
+        // cajole map of octaved notes into the abstract
+        var abstractNotes = [];
+        notes.forEach((isPressed, note, map) => {
+            if (isPressed) {
+                // strip octave digit
+                var abstractNote = note.substring(0, note.search(/\d/))
+                if (abstractNote != "")  {
+                    abstractNotes.push(abstractNote)
+                }
+            }
+        });
+
+        // check notes against chord
+        // TODO: perhaps more detailed help notes
+        for (var i = 0; i < this.notes.length; i++) {
+            if (this.notes[i] != abstractNotes[i]) {
+                return false
+            }
+        }
+
+        return true
+    }
+}
+
+class ChordBook {
+    constructor () {}
+
+    // TODO: handle different octaves
+    majorTriad(root) {
+        var chord = new Chord(root, root + " major");
+        chord.stack("maj3").stack("min3")
+        return chord
+    }
+    
+}
+
+function semitonesIn(interval) {
+    switch (interval) {
+        case "maj3":
+            return 4
+        case "min3":
+            return 3
+    }
+}
+
+book = new ChordBook()
+chords = new ChordSet(
+    [
+        book.majorTriad("c"),
+        book.majorTriad("d")
+    ],
+    function(chord) {
+        alert("you just successfully played " + chord.name)
+    }
+)
+
 const options = {
     keys: octavesFrom("c", 1),
+    chords: chords,
 }
+
+console.log(options.chords)
 
 const piano = new Piano(document.querySelector("#piano"), options);
 
