@@ -9,3 +9,4 @@ Omnichord is a tool to help you learn your chords
 - [] customise your exercises
 - [] ding with a happy sound when you succeed
 - [] add mute
+- [] mobile
