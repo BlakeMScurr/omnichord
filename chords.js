@@ -82,7 +82,6 @@ class ChordBook {
     constructor () {
         // TODO: flatten on the server side or once ahead of time to reduce computation
         this.symbolMap = flatten(chordTree)
-        console.log(this.symbolMap)
     }
 
     // flatten recurses the chord tree an makes a map from symbol to list of intervals
@@ -99,24 +98,39 @@ class ChordBook {
 }
 
 class ChordSet {
-    constructor (chords, onComplete) {
-        this.chords = chords
-        this.onComplete = onComplete
+    constructor () {
         this.current = 0
+        this.chords = [];
     }
 
+    // infer the right set of chords from a comma separated list of chord symbols
+    infer(book) {
+        this.chords = [];
+        var text = document.querySelector("#chords").innerHTML
+
+        var symbols = text.split(" ")
+        symbols.forEach(symbol => {
+            var root = symbol[0].toLocaleLowerCase();
+            if (symbol.includes("#")) {
+                root += "#"
+            }
+            this.chords.push(book.make(root, symbol.substring(root.length)))
+        })
+    }
+    
     getCurrent() {
         if (this.current < this.chords.length) {
             return this.chords[this.current]
         }
     }
 
-    isComplete() {
-        return this.current >= this.chords.length
+    completeNext() {
+        this.current = (this.current + 1) % this.chords.length
+        this.render()
     }
 
-    completeNext() {
-        this.current++
+    reset() {
+        this.current = 0
         this.render()
     }
 
@@ -124,12 +138,12 @@ class ChordSet {
         var desc = "";
         this.chords.forEach((chord, i) => {
             if (i < this.current) {
-                desc += chord.symbol.strike() + ", "
+                desc += chord.symbol.strike() + " "
             } else {
-                desc += chord.symbol + ", "
+                desc += chord.symbol + " "
             }
         })
-        desc = desc.substr(0, desc.lastIndexOf(", "))
+        desc = desc.substr(0, desc.lastIndexOf(" "))
         document.querySelector("#chords").innerHTML = desc
     }
 }

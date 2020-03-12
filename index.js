@@ -86,10 +86,8 @@ class Piano {
     }
 
     CheckSuccess() {
-        if (!this.chords.isComplete()) {
-            if (this.chords.getCurrent().equals(this.pressed)) {
-                this.chords.completeNext()
-            }
+        if (this.chords.getCurrent().equals(this.pressed)) {
+            this.chords.completeNext()
         }
     }
     
@@ -162,12 +160,7 @@ function octavesFrom(note, octave, octavesLeft) {
 }
 
 book = new ChordBook()
-chords = new ChordSet(
-    [
-        book.make("c", ""),
-        book.make("d", "")
-    ],
-)
+chords = new ChordSet()
 
 const options = {
     keys: octavesFrom("c", 4, 3),
@@ -199,6 +192,14 @@ WebMidi.enable(function (err) {
         piano.releaseKey(e.note.name.toLocaleLowerCase() + e.note.octave)
     });
 });
+
+document.querySelector("#changeChords").onclick = function() {
+    var newChordTextArea = document.querySelector("#newChords");
+    document.querySelector("#chords").innerHTML = newChordTextArea.value
+    newChordTextArea.value = ""
+    chords.infer(book)
+};
+chords.infer(book)
 
 // initial rendering
 piano.render();
