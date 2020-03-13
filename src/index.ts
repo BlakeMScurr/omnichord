@@ -1,8 +1,9 @@
-const WebMidi = window.WebMidi;
+import WebMidi, { InputEventNoteon, InputEventNoteoff } from "webmidi";
+import { ChordBook, ChordSet, NoteOrder } from "./theory/chords";
 
 // TODO: merge with blackKeys
-function whiteKeys(keys) {
-    let whites = [];
+function whiteKeys(keys: Array<string>) {
+    let whites: Array<string> = [];
     keys.forEach(key => {
         if (white(key)){
             whites.push(key)
@@ -11,13 +12,13 @@ function whiteKeys(keys) {
     return whites
 }
 
-function white(key) {
+function white(key: string) {
     return !key.includes("#")
 }
 
 // Black keys includes ghost black keys like the key that would be between b and c
-function physicalBlackKeys(keys) {
-    let blacks = [];
+function physicalBlackKeys(keys: Array<string>) {
+    let blacks: Array<string> = [];
     var lastWasWhite = true;
     keys.forEach(key => {
         if (!white(key)) {
@@ -36,19 +37,29 @@ function physicalBlackKeys(keys) {
 }
 
 class Piano {
-    constructor(el, options) {
-        this.canvas = el;
-        this.context = this.canvas.getContext('2d')
-        this.keys = options.keys
+    // logic
+    keys: Array<string>;
+    pressed: Map<string, boolean>;
+    chords: ChordSet; // TODO: make a piano output current notes, rather than knowing about chords
+
+    // rendering
+    context: CanvasRenderingContext2D;
+    width: number;
+    height: number;
+    keyWidth: number;
+
+    constructor(canvas: HTMLCanvasElement, keys: Array<string>, chords: ChordSet) {
+        this.context = <CanvasRenderingContext2D>canvas.getContext('2d')
+        this.keys = keys
         this.pressed = new Map()
 
         this.width = window.innerWidth * 0.9
 
         this.keyWidth = this.width / (whiteKeys(this.keys).length)
         this.height = 300;
-        this.canvas.width = this.width
-        this.canvas.height = this.height
-        this.chords = options.chords
+        canvas.width = this.width
+        canvas.height = this.height
+        this.chords = chords
     }
 
     render() {
@@ -86,37 +97,37 @@ class Piano {
     }
 
     CheckSuccess() {
-        if (this.chords.getCurrent().equals(this.pressed)) {
+        if (this.chords.getCurrent()?.equals(this.pressed)) {
             this.chords.completeNext()
         }
     }
     
-    pressKey(note) {
+    pressKey(note: string) {
         this.pressed.set(note, true)
         this.render()
         this.CheckSuccess()
     }
 
-    releaseKey(note) {
+    releaseKey(note: string) {
         this.pressed.delete(note)
         this.render()
         this.CheckSuccess()
     }
 
     // Handles computer keyboard note playing
-    keyUp(event) {
+    keyUp(event: KeyboardEvent) {
         this.releaseKey(this.keyboardInputNote(event.keyCode))
     }
 
     // Handles computer keyboard note releasing
-    keyDown(event) {
+    keyDown(event: KeyboardEvent) {
         this.pressKey(this.keyboardInputNote(event.keyCode))
     }
 
     // Keys the note repsented by a key on the computer keyboard
-    keyboardInputNote(key) {
+    keyboardInputNote(keyCode: number) {
         // TODO: don't assume wasd
-        key = String.fromCharCode(key).toLocaleLowerCase()
+        let key: string = String.fromCharCode(keyCode).toLocaleLowerCase()
 
         // handle naturals
         var naturals = ["a","s","d","f","g","h","j","k","l",";"]
@@ -136,9 +147,7 @@ class Piano {
     }
 }
 
-const noteOrder = ["c","c#","d","d#","e","f","f#","g","g#","a","a#","b"]
-
-function octavesFrom(note, octave, octavesLeft) {
+function octavesFrom(note: string, octave: number, octavesLeft: number) {
     if (!white(note)) {
         throw "the notes on a keyboard must start from a white note, otherwise there'll be a weird half note space at the end of the keyboard"
     }
@@ -149,7 +158,7 @@ function octavesFrom(note, octave, octavesLeft) {
         while (notesLeft > 0) {
             notes.push(note + octave)
             notesLeft--
-            note = noteOrder[(noteOrder.indexOf(note)+1)%12]
+            note = NoteOrder[(NoteOrder.indexOf(note)+1)%12]
         }
         octavesLeft--
         octave++
@@ -159,15 +168,10 @@ function octavesFrom(note, octave, octavesLeft) {
     return notes
 }
 
-book = new ChordBook()
-chords = new ChordSet()
+let book = new ChordBook()
+let chords = new ChordSet()
 
-const options = {
-    keys: octavesFrom("c", 4, 3),
-    chords: chords,
-}
-
-const piano = new Piano(document.querySelector("#piano"), options);
+const piano = new Piano(<HTMLCanvasElement>document.querySelector("#piano"), octavesFrom("c", 4, 3), chords);
 
 // Setup interactions
 document.addEventListener('keydown', (event) => {
@@ -183,19 +187,19 @@ WebMidi.enable(function (err) {
         console.log("WebMidi could not be enabled.", err);
     }
     // TODO: make sure we get the right input by checking all possible inputs
-    WebMidi.inputs[0].addListener('noteon', "all",
-    function (e) {
+    WebMidi.inputs[0].addListener('noteon', "all", (e: InputEventNoteon) => {
       piano.pressKey(e.note.name.toLocaleLowerCase() + e.note.octave)
     });
-    WebMidi.inputs[0].addListener('noteoff', "all",
-    function (e) {
+    WebMidi.inputs[0].addListener('noteoff', "all", (e: InputEventNoteoff) => {
         piano.releaseKey(e.note.name.toLocaleLowerCase() + e.note.octave)
     });
 });
 
-document.querySelector("#changeChords").onclick = function() {
-    var newChordTextArea = document.querySelector("#newChords");
-    document.querySelector("#chords").innerHTML = newChordTextArea.value
+var changeChordsButton = <HTMLButtonElement>document.querySelector("#changeChords")
+changeChordsButton.onclick = function() {
+    var newChordTextArea = <HTMLTextAreaElement>document.querySelector("#newChords");
+    var chordsParagraph = <HTMLParagraphElement>document.querySelector("#chords");
+    chordsParagraph.innerHTML = newChordTextArea.value
     newChordTextArea.value = ""
     chords.infer(book)
 };

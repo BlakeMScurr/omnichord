@@ -1,112 +1,81 @@
-const semitonesIn = {
-    "maj3": 4,
-    "min3": 3,
-    "maj2": 2,
-}
-
-// The chord tree is a (relatively) human readable format for encoding chords by stacking intervals
-// It's an exhaustive way of representing all chords.
-// Just start at the root then have a list of the chords create by stacking a given interval
-// and so on recursively.
-// Naturally there are deep interactions in the canopy, but at least this way is complete.
-const chordTree = {
-    "maj3": {
-        "min3": {
-            "description": "major triad root position",
-            "symbol": "",
-            "min3": {
-                "description": "7th root position",
-                "symbol": "7",
-            },
-            "maj3": {
-                "description": "major 7th root position",
-                "symbol": "maj7",
-            },
-            
-        },
-        "maj3": {
-            "description": "augmented triad",
-            "symbol": "aug",
-        }
-    },
-    "min3": {
-        "maj3": {
-            "description": "minor triad root position",
-            "symbol": "m",
-            "maj2": {
-                "description": "minor 6th root position",
-                "symbol": "m6",
-            },
-            "min3": {
-                "description": "minor 7th root position",
-                "symbol": "m7",
-            }
-        },
-    },
-}
-
-function flatten(tree) {
-    var chords = {};
-    Object.keys(tree).forEach(interval => {
-        var childTree = tree[interval]
-        if (semitonesIn.hasOwnProperty(interval)) {
-            var childChords = flatten(childTree)
-            Object.keys(childChords).forEach(symbol => {
-                child = childChords[symbol]
-                child.addBelow(interval)
-                chords[symbol] = child
-            });
-        }
-    });
-
-    if (tree.hasOwnProperty("symbol")) {
-        chords[tree["symbol"]] = new ChordType(tree["symbol"], tree["description"])
-    }
-
-    return chords
-}
+// TODO: replace with enum, fix weird "cannot find name" error
+const semitonesIn: Map<string, number> = new Map([
+    ["Semitone", 1],
+    ["Tone", 2],
+    ["Minor3rd", 3],
+    ["Major3rd", 4],
+    ["Perfect4th", 5],
+    ["Augmented4th", 6],
+    ["Perfect5th", 7],
+    ["Minor6th", 8],
+    ["Major6th", 9],
+    ["Minor7th", 10],
+    ["Major7th", 11],
+])
 
 class ChordType {
-    constructor(symbol, description) {
+    intervals: Array<string>;
+    symbol: string;
+    description: string;
+
+    constructor(intervals: Array<string>, symbol: string, description: string) {
         this.symbol = symbol
         this.description = description
-        this.intervals = []
-    }
-
-    addBelow(interval) {
-        this.intervals.unshift(interval)
+        this.intervals = intervals
     }
 }
 
-class ChordBook {
+export class ChordBook {
+    symbolMap: Map<string, ChordType>;
+
     constructor () {
-        // TODO: flatten on the server side or once ahead of time to reduce computation
-        this.symbolMap = flatten(chordTree)
+        this.symbolMap = new Map([
+            // TODO: remove repeated symbol
+            ["dim", new ChordType(new Array("Minor3rd", "Minor3rd"), "dim", "diminished triad root")],
+            ["m", new ChordType(new Array("Minor3rd", "Major3rd"), "m", "minor triad root position")],
+            ["m7", new ChordType(new Array("Minor3rd", "Major3rd", "Minor3rd"), "m7", "minor 7th root position")],
+            ["", new ChordType(new Array("Major3rd", "Minor3rd"), "", "major triad root position")],
+            ["7", new ChordType(new Array("Major3rd", "Minor3rd", "Minor3rd"), "7", "7th root position")],
+            ["maj7", new ChordType(new Array("Major3rd", "Minor3rd", "Major3rd"), "maj7", "major 7th root position")],
+            ["aug", new ChordType(new Array("Major3rd", "Major3rd"), "aug", "augmented triad")],
+        ]);
     }
 
-    // flatten recurses the chord tree an makes a map from symbol to list of intervals
-    
-
-    make(root, symbol) {
+    // TODO: note type
+    make(root: string, symbol: string) {
         var chord = new Chord(root);
         chord.symbol = root.toUpperCase() + symbol
-        this.symbolMap[symbol].intervals.forEach((interval) => {
+
+        // Ensure the chord type exists
+        // TODO: more succinct way - does ? throw an error?
+        var possibleType = this.symbolMap.get(symbol)
+        console.log(symbol)
+        if (!possibleType) {
+            throw "chord " + symbol + "unknown"
+        }
+        var type = <ChordType>possibleType
+
+        type.intervals.forEach((interval) => {
             chord.stack(interval);
         });
         return chord
     }
 }
 
-class ChordSet {
+export class ChordSet {
+    current: number;
+    chords: Array<Chord>;
+
     constructor () {
         this.current = 0
         this.chords = [];
     }
 
     // infer the right set of chords from a comma separated list of chord symbols
-    infer(book) {
+    infer(book: ChordBook) {
         this.chords = [];
-        var text = document.querySelector("#chords").innerHTML
+        var chordElem = <HTMLParagraphElement>document.querySelector("#chords")
+        var text = chordElem.innerHTML
 
         var symbols = text.split(" ")
         symbols.forEach(symbol => {
@@ -144,36 +113,45 @@ class ChordSet {
             }
         })
         desc = desc.substr(0, desc.lastIndexOf(" "))
-        document.querySelector("#chords").innerHTML = desc
+        var chordElem = <HTMLParagraphElement>document.querySelector("#chords")
+        chordElem.innerHTML = desc
     }
 }
 
+export const NoteOrder = ["c","c#","d","d#","e","f","f#","g","g#","a","a#","b"]
+
 class Chord {
-    constructor(note, symbol) {
-        this.symbol = symbol
+    symbol: string;
+    root: string;
+    highest: string;
+    notes: Array<string>;
+
+    constructor(note: string) {
+        this.symbol = ""
         this.root = note
         this.highest = note
         this.notes = [note]
     }
 
-    stack(interval) {
-        var index = (noteOrder.indexOf(this.highest) + semitonesIn[interval]) % 12
-        var newNote = noteOrder[index]
+    stack(interval: string) {
+        var index = (NoteOrder.indexOf(this.highest) + <number>semitonesIn.get(interval))% 12
+        var newNote = NoteOrder[index]
         this.notes.push(newNote)
         this.highest = newNote
         return this
     }
 
-    equals(notes) {
+    equals(notes: Map<string, boolean>) {
         // cajole map of octaved notes into the abstract
-        var abstractNotes = [];
+        // TODO: get the piano to output cajoled notes
+        var abstractNotes: Array<string> = [];
         notes.forEach((isPressed, note, map) => {
             if (isPressed) {
                 abstractNotes.push(note)
             }
         });
 
-        var strip = function(note) {
+        var strip = function(note: string) {
             var stripped = note.substring(0, note.search(/\d/))
             if (stripped == "") {
                 throw "note stripped of its octave is empty"
@@ -192,7 +170,7 @@ class Chord {
                 return 1
             } else {
                 // TODO: handle the fact that the starting note of the octaves may change where the note order ought to start
-                if(noteOrder.indexOf(strip(a)) < noteOrder.indexOf(strip(b))) {
+                if(NoteOrder.indexOf(strip(a)) < NoteOrder.indexOf(strip(b))) {
                     return -1
                 }
                 return 1
@@ -204,6 +182,8 @@ class Chord {
             abstractNotes[index] = strip(note)
         })
 
+        console.log(abstractNotes)
+        console.log(this.notes)
         // check notes against chord
         // TODO: perhaps more detailed help notes
         for (var i = 0; i < this.notes.length; i++) {
