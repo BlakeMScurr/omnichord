@@ -73,16 +73,6 @@ class Piano {
             }
         });
 
-        notes = notes.sort((a: Note, b: Note) => {
-            // TODO: shorten using fancy js number bool stuff
-            if (a.lowerThan(b)) {
-                return -1
-            }
-            // console.log("not lower")
-            return 1
-        })
-        console.log(notes)
-
         return notes
     }
 
@@ -128,7 +118,6 @@ class Piano {
 
         // Recognise Chord
         var currCHord = <Chord>book.recognise(this.currentNotes())
-        console.log(currCHord)
         this.onChordChange(currCHord)
     }
     
@@ -142,6 +131,29 @@ class Piano {
         this.pressed.delete(note)
         this.render()
         this.NoteChange()
+    }
+
+    // Handles midi keyboard note playing
+    pianoKeyPressed(name: string, octave: number) {
+        this.pressKey(this.getNote(new Note(NewAbstractNote(name), octave)))
+    }
+
+    // Handles midi keyboard note releasing
+    pianoKeyReleased(name: string, octave: number) {
+        this.releaseKey(this.getNote(new Note(NewAbstractNote(name), octave)))
+    }
+
+    // Get key gets the actual reference to a note on the keyboard from another equivalent note object
+    // This allows us to lookup notes using pressed.indexOF
+    // TODO: be more effiecient
+    getNote(note: Note){
+        for (var i = 0; i < this.keys.length; i++) {
+            var n = this.keys[i]
+            if (note.equals(n)) {
+                return n
+            }
+        }
+        return note
     }
 
     // Handles computer keyboard note playing
@@ -227,10 +239,10 @@ WebMidi.enable(function (err) {
     // TODO: listen for midi being plugged in
     try {
         WebMidi.inputs[0].addListener('noteon', "all", (e: InputEventNoteon) => {
-          piano.pressKey(new Note(NewAbstractNote(e.note.name), e.note.octave))
+          piano.pianoKeyPressed(e.note.name, e.note.octave)
         });
         WebMidi.inputs[0].addListener('noteoff', "all", (e: InputEventNoteoff) => {
-            piano.releaseKey(new Note(NewAbstractNote(e.note.name), e.note.octave))
+            piano.pianoKeyReleased(e.note.name, e.note.octave)
         });
     } catch (e) {}
 });

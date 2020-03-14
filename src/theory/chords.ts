@@ -170,6 +170,10 @@ export class AbstractNote {
         var n = NoteOrder[(i+1)%12];
         return n
     }
+
+    equals(note: AbstractNote) {
+        return this.letter == note.letter && this.sharp == note.sharp
+    }
 }
 
 export class Note {
@@ -183,9 +187,8 @@ export class Note {
     }
     
     lowerThan(note: Note) {
-        console.log("is " + note.string() + " lower than " + this.string())
         if (this.octave < note.octave) {
-            return false
+            return true
         }
 
         return NoteOrder.indexOf(this.abstract) < NoteOrder.indexOf(note.abstract)
@@ -202,6 +205,10 @@ export class Note {
     string() {
         return this.abstract.string() + this.octave
     }
+
+    equals(note: Note) {
+        return this.octave == note.octave && this.abstract.equals(note.abstract)
+    }
 }
 
 // TODO: unexport
@@ -209,6 +216,7 @@ const notelist = ["c","c#","d","d#","e","f","f#","g","g#","a","a#","b"]
 export const NoteOrder = notelist.map((name: string)=>{return new AbstractNote(name)})
 
 export function NewAbstractNote(name: string) {
+    name = name.toLocaleLowerCase()
     for (var i = 0; i < NoteOrder.length; i++ ) {
         var note = NoteOrder[i]
         if (note.string() == name) {
@@ -223,6 +231,18 @@ export function NewAbstractNote(name: string) {
     }
     throw "unknown note " + name
 }
+
+export function sortNotes(notes: Array<Note>) {
+    notes = notes.sort((a: Note, b: Note) => {
+        // TODO: shorten using fancy js number bool stuff
+        if (a.lowerThan(b)) {
+            return -1
+        }
+        return 1
+    })
+    return notes
+}
+
 
 // Chords are actually strict voicings, and use octaved notes, not abstract notes
 export class Chord {
@@ -248,6 +268,8 @@ export class Chord {
     }
 
     equals(notes: Array<Note>) {
+        notes = sortNotes(notes)
+
         // check notes against chord
         // TODO: perhaps more detailed help notes
         if (this.notes.length != notes.length) {
