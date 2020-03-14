@@ -59,6 +59,23 @@ export class ChordBook {
         });
         return chord
     }
+
+    recognise(notes: Array<Note>):Chord|undefined {
+        if (notes.length != 0) {
+            for (const [symbol, value] of this.symbolMap) { 
+                var chord = this.make(notes[0], symbol, true, true)
+                if (chord.equals(notes)) {
+                    return chord
+                }
+            }
+        }
+    }
+}
+
+function noteString(notes: Array<Note>) {
+    return notes.map((note: Note)=>{
+        return note.string()
+    }).join(", ")
 }
 
 export class ChordSet {
@@ -119,7 +136,7 @@ export class ChordSet {
 }
 
 // Abstract notes like B and F# don't depend on octaves
-class AbstractNote {
+export class AbstractNote {
     letter: string;
     sharp: boolean; // We only handle sharps in fundamental representation, enharmonic flats are a rendering issue
     constructor(name: string) {
@@ -166,8 +183,9 @@ export class Note {
     }
     
     lowerThan(note: Note) {
+        console.log("is " + note.string() + " lower than " + this.string())
         if (this.octave < note.octave) {
-            return true
+            return false
         }
 
         return NoteOrder.indexOf(this.abstract) < NoteOrder.indexOf(note.abstract)
@@ -207,7 +225,7 @@ export function NewAbstractNote(name: string) {
 }
 
 // Chords are actually strict voicings, and use octaved notes, not abstract notes
-class Chord {
+export class Chord {
     symbol: string;
     root: Note;
     highest: Note;
@@ -223,7 +241,7 @@ class Chord {
     stack(interval: string) {
         var index = NoteOrder.indexOf(this.highest.abstract) + <number>semitonesIn.get(interval)
         var nextAbstractNote = NoteOrder[index % 12]
-        var newNote = new Note(nextAbstractNote, Math.floor((this.highest.octave + index)/12));
+        var newNote = new Note(nextAbstractNote, this.highest.octave + Math.floor((this.highest.octave + index)/12));
         this.notes.push(newNote)
         this.highest = newNote
         return this

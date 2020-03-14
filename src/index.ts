@@ -1,5 +1,6 @@
 import WebMidi, { InputEventNoteon, InputEventNoteoff } from "webmidi";
-import { ChordBook, ChordSet, Note, NewAbstractNote } from "./theory/chords";
+import { Chord, ChordBook, ChordSet, Note, NewAbstractNote } from "./theory/chords";
+// import { Player } from "./youtube/youtube"
 
 // TODO: merge with blackKeys
 function whiteKeys(keys: Array<Note>) {
@@ -41,6 +42,7 @@ class Piano {
     keys: Array<Note>;
     pressed: Map<Note, boolean>;
     chords: ChordSet; // TODO: make a piano output current notes, rather than knowing about chords
+    onChordChange: (c: (Chord|undefined)) => void;
 
     // rendering
     context: CanvasRenderingContext2D;
@@ -48,12 +50,13 @@ class Piano {
     height: number;
     keyWidth: number;
 
-    constructor(canvas: HTMLCanvasElement, keys: Array<Note>, chords: ChordSet) {
+    constructor(canvas: HTMLCanvasElement, keys: Array<Note>, chords: ChordSet, onChordChange: (c: (Chord|undefined)) => void) {
+        this.onChordChange = onChordChange
         this.context = <CanvasRenderingContext2D>canvas.getContext('2d')
         this.keys = keys
         this.pressed = new Map()
 
-        this.width = window.innerWidth * 0.9
+        this.width = window.innerWidth
 
         this.keyWidth = this.width / (whiteKeys(this.keys).length)
         this.height = 300;
@@ -70,13 +73,15 @@ class Piano {
             }
         });
 
-        notes.sort((a: Note, b: Note) => {
+        notes = notes.sort((a: Note, b: Note) => {
             // TODO: shorten using fancy js number bool stuff
             if (a.lowerThan(b)) {
                 return -1
             }
+            // console.log("not lower")
             return 1
         })
+        console.log(notes)
 
         return notes
     }
@@ -115,22 +120,28 @@ class Piano {
         });
     }
 
-    CheckSuccess() {
+    NoteChange() {
+        // CheckSuccess
         if (this.chords.getCurrent()?.equals(this.currentNotes())) {
             this.chords.completeNext()
         }
+
+        // Recognise Chord
+        var currCHord = <Chord>book.recognise(this.currentNotes())
+        console.log(currCHord)
+        this.onChordChange(currCHord)
     }
     
     pressKey(note: Note) {
         this.pressed.set(note, true)
         this.render()
-        this.CheckSuccess()
+        this.NoteChange()
     }
 
     releaseKey(note: Note) {
         this.pressed.delete(note)
         this.render()
-        this.CheckSuccess()
+        this.NoteChange()
     }
 
     // Handles computer keyboard note playing
@@ -188,8 +199,16 @@ function octavesFrom(note: Note, octavesLeft: number) {
 
 let book = new ChordBook()
 let chords = new ChordSet()
+let onChordChange = (chord: (Chord|undefined)) => {
+    var currentChord = <HTMLParagraphElement>(document.querySelector("#currentChord"))
+    if (chord == undefined) {
+        currentChord.innerHTML = "-"
+    } else {
+        currentChord.innerHTML = (<Chord>(chord)).symbol
+    }
+}
 
-const piano = new Piano(<HTMLCanvasElement>document.querySelector("#piano"), octavesFrom(new Note(NewAbstractNote("c"), 4), 1), chords);
+const piano = new Piano(<HTMLCanvasElement>document.querySelector("#piano"), octavesFrom(new Note(NewAbstractNote("c"), 4), 3), chords, onChordChange);
 
 // Setup interactions
 document.addEventListener('keydown', (event) => {
@@ -226,6 +245,26 @@ changeChordsButton.onclick = function() {
 };
 chords.infer(book)
 
+
+
 // initial rendering
 piano.render();
 chords.render();
+
+interface Player {
+    stopVideo():any
+    startVideo():any
+}
+interface Window {
+    player?: Player;
+}
+
+// YouTube Stuff
+setTimeout(()=>{
+    var w: Window = <Window>window;
+    var player: any = <Player>w.player;
+    
+    // setTimeout(player.startVideo(), 1000);
+    // setTimeout(player.stopVideo(), 3000);
+}, 5000)
+
