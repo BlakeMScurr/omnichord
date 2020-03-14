@@ -41,15 +41,14 @@ export class ChordBook {
         ]);
     }
 
-    // TODO: note type
-    make(root: string, symbol: string) {
+    // TODO: voicing booleans as options
+    make(root: Note, symbol: string, octaveIndependent: boolean, voicingIndependent: boolean) {
         var chord = new Chord(root);
-        chord.symbol = root.toUpperCase() + symbol
+        chord.symbol = root.abstract.string().toUpperCase() + symbol
 
         // Ensure the chord type exists
         // TODO: more succinct way - does ? throw an error?
         var possibleType = this.symbolMap.get(symbol)
-        console.log(symbol)
         if (!possibleType) {
             throw "chord " + symbol + "unknown"
         }
@@ -83,7 +82,8 @@ export class ChordSet {
             if (symbol.includes("#")) {
                 root += "#"
             }
-            this.chords.push(book.make(root, symbol.substring(root.length)))
+            // start in fourth octave with middle c
+            this.chords.push(book.make(new Note(NewAbstractNote(root), 4), symbol.substring(root.length), false, true))
         })
     }
     
@@ -118,15 +118,102 @@ export class ChordSet {
     }
 }
 
-export const NoteOrder = ["c","c#","d","d#","e","f","f#","g","g#","a","a#","b"]
+// Abstract notes like B and F# don't depend on octaves
+class AbstractNote {
+    letter: string;
+    sharp: boolean; // We only handle sharps in fundamental representation, enharmonic flats are a rendering issue
+    constructor(name: string) {
+        if (name.length == 0 || name.length > 2) {
+            throw "invalid note name length " + name.length + " for note " + name
+        }
 
+        var validNote = new RegExp(/[a-gA-GX]/)
+        this.letter = name[0]
+        if (!validNote.test(this.letter)) {
+            throw "note letter must be between \"a\" and \"g\", got " + this.letter
+        }
+
+        if (name.length == 2 && name[1] != "#") {
+            throw "only sharps are valid accidentals, got " + name[1] + " from " + name
+        }
+
+        this.sharp = name.length == 2
+    }
+    
+    string() {
+        var str = this.letter
+        if (this.sharp) {
+            str += "#"
+        }
+        return str
+    }
+
+    next() {
+        var i = NoteOrder.indexOf(this)
+        var n = NoteOrder[(i+1)%12];
+        return n
+    }
+}
+
+export class Note {
+    abstract: AbstractNote;
+    octave: number;
+
+    // TODO: parseNot function that accepts a nice string
+	constructor(note: AbstractNote, octave: number) {
+        this.abstract = note
+        this.octave = octave
+    }
+    
+    lowerThan(note: Note) {
+        if (this.octave < note.octave) {
+            return true
+        }
+
+        return NoteOrder.indexOf(this.abstract) < NoteOrder.indexOf(note.abstract)
+    }
+
+    next() {
+        var octave = this.octave
+        if (NoteOrder.indexOf(this.abstract) == 11) {
+            octave++
+        }
+        return new Note(this.abstract.next(), octave)
+    }
+
+    string() {
+        return this.abstract.string() + this.octave
+    }
+}
+
+// TODO: unexport
+const notelist = ["c","c#","d","d#","e","f","f#","g","g#","a","a#","b"]
+export const NoteOrder = notelist.map((name: string)=>{return new AbstractNote(name)})
+
+export function NewAbstractNote(name: string) {
+    for (var i = 0; i < NoteOrder.length; i++ ) {
+        var note = NoteOrder[i]
+        if (note.string() == name) {
+            return note
+        }
+    }
+
+    // Placeholder note/key
+    // TODO: factor out
+    if (name == "X") {
+        return new AbstractNote("X")
+    }
+    throw "unknown note " + name
+}
+
+// Chords are actually strict voicings, and use octaved notes, not abstract notes
 class Chord {
     symbol: string;
-    root: string;
-    highest: string;
-    notes: Array<string>;
+    root: Note;
+    highest: Note;
+    notes: Array<Note>;
 
-    constructor(note: string) {
+    constructor(note: Note) {
         this.symbol = ""
         this.root = note
         this.highest = note
@@ -134,60 +221,22 @@ class Chord {
     }
 
     stack(interval: string) {
-        var index = (NoteOrder.indexOf(this.highest) + <number>semitonesIn.get(interval))% 12
-        var newNote = NoteOrder[index]
+        var index = NoteOrder.indexOf(this.highest.abstract) + <number>semitonesIn.get(interval)
+        var nextAbstractNote = NoteOrder[index % 12]
+        var newNote = new Note(nextAbstractNote, Math.floor((this.highest.octave + index)/12));
         this.notes.push(newNote)
         this.highest = newNote
         return this
     }
 
-    equals(notes: Map<string, boolean>) {
-        // cajole map of octaved notes into the abstract
-        // TODO: get the piano to output cajoled notes
-        var abstractNotes: Array<string> = [];
-        notes.forEach((isPressed, note, map) => {
-            if (isPressed) {
-                abstractNotes.push(note)
-            }
-        });
-
-        var strip = function(note: string) {
-            var stripped = note.substring(0, note.search(/\d/))
-            if (stripped == "") {
-                throw "note stripped of its octave is empty"
-            }
-            return note.substring(0, note.search(/\d/))
-        } 
-
-        abstractNotes.sort((a,b) => {
-            // sort by octave
-            var aoctave = a[a.search(/\d/)]
-            var boctave = b[b.search(/\d/)]
-
-            if (aoctave < boctave) {
-                return -1
-            } else if (aoctave > boctave) {
-                return 1
-            } else {
-                // TODO: handle the fact that the starting note of the octaves may change where the note order ought to start
-                if(NoteOrder.indexOf(strip(a)) < NoteOrder.indexOf(strip(b))) {
-                    return -1
-                }
-                return 1
-            }
-        })
-
-        // remove octave digit
-        abstractNotes.forEach((note, index) => {
-            abstractNotes[index] = strip(note)
-        })
-
-        console.log(abstractNotes)
-        console.log(this.notes)
+    equals(notes: Array<Note>) {
         // check notes against chord
         // TODO: perhaps more detailed help notes
+        if (this.notes.length != notes.length) {
+            return false
+        }
         for (var i = 0; i < this.notes.length; i++) {
-            if (this.notes[i] != abstractNotes[i]) {
+            if (notes[i] != undefined && this.notes[i].abstract.string() != notes[i].abstract.string()) {
                 return false
             }
         }
