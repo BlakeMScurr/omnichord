@@ -27,7 +27,7 @@ Omnichord is a tool to help you learn your chords. Try it here https://blakemscu
   - [ ] Annotate embedded soundcloud or youtube
   - [ ] Transpose
   - [ ] Suggest flat names for certain chords (i.e., Bb not A#)
-  - [ ] Typescript
+  - [x] Typescript
   - [ ] Unit testing
   - [ ] Banner asking you to plug in your device (which dissapears when you do)
   - [ ] Toggle note names
