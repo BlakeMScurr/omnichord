@@ -94,12 +94,6 @@ export class ChordBook {
     }
 }
 
-function noteString(notes: Array<Note>) {
-    return notes.map((note: Note)=>{
-        return note.string()
-    }).join(", ")
-}
-
 export class ChordSet {
     current: number;
     chords: Array<Chord>;
@@ -282,28 +276,37 @@ export function sortNotes(notes: Array<Note>):Array<Note> {
     return notes
 }
 
+// TODO: make a notelist type and add this is a method
+// TODO: unexport
+export function noteString(notes: Array<Note>) {
+    return notes.map((note: Note)=>{
+        return note.string()
+    }).join(", ")
+}
+
 // squashNotes removes all repeated notes and puts all the notes in the same octave
 // while keeping the same root/lowest note
 // TODO: make a notelist type and add this is a method
 // TODO: unexport
+// TODO: reduce number of arrays declared if possible - they were created while debugging apparent side effects in the function
 export function squashNotes(notes: Array<Note>):Array<Note>{
-    notes = sortNotes(notes)
+    var sortedNotes = sortNotes(notes)
 
     // remove repeats
     var has: Map<String, boolean> = new Map();
     var uniqueNotes: Array<Note> = [];
-    notes.forEach(note => {
-        if (!has.get(note.abstract.string())) {
+    sortedNotes.forEach(note => {
+        if (!has.has(note.abstract.string())) {
             uniqueNotes.push(note.deepCopy())
             has.set(note.abstract.string(), true)
         }
     })
 
     // squash into one octave
-    var lowest = notes[0]
+    var lowest = uniqueNotes[0]
     var squashedNotes: Array<Note> = [lowest];
     for (var i = 1; i < uniqueNotes.length; i++) {
-        var note = notes[i]
+        var note = uniqueNotes[i]
         note.octave = lowest.octave
         if (note.lowerThan(lowest)) {
             note.octave++

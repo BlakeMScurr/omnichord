@@ -1,5 +1,5 @@
 import WebMidi, { InputEventNoteon, InputEventNoteoff } from "webmidi";
-import { Chord, ChordBook, ChordSet, Note, NewAbstractNote } from "./theory/chords";
+import { Chord, ChordBook, ChordSet, Note, NewAbstractNote, noteString } from "./theory/chords";
 // import { Player } from "./youtube/youtube"
 
 // TODO: merge with blackKeys
@@ -118,6 +118,11 @@ class Piano {
 
         // Recognise Chord
         var currChord = <Chord>book.recognise(this.currentNotes())
+        if (currChord == undefined) {
+            console.log("didn't recognise: " + noteString(this.currentNotes()))
+        } else {
+            console.log("got chord from: " + noteString(this.currentNotes()))
+        }
         this.onChordChange(currChord)
     }
     
