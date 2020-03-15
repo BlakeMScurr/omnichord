@@ -77,8 +77,9 @@ export class ChordBook {
                 }
             }
 
-            // Check if it's equal to any possible inversions
-            for (var i = 1; i < notes.length; i++) {
+            // Check if it's equal to any possible inversions in some arbitrary voicing
+            notes = squashNotes(notes)
+            for (var i = 0; i < notes.length; i++) {
                 var note = notes[i]
                 for (const [symbol, value] of this.symbolMap) { 
                     var chord = this.make(note, symbol, true, true)
@@ -89,8 +90,6 @@ export class ChordBook {
                     }
                 }
             }
-
-            // TODO: check that it's a voicing of some chord
         }
     }
 }
@@ -270,7 +269,9 @@ export function NewAbstractNote(name: string) {
     throw "unknown note " + name
 }
 
-export function sortNotes(notes: Array<Note>) {
+// TODO: make a notelist type and add this is a method
+// TODO: unexport
+export function sortNotes(notes: Array<Note>):Array<Note> {
     notes = notes.sort((a: Note, b: Note) => {
         // TODO: shorten using fancy js number bool stuff
         if (a.lowerThan(b)) {
@@ -279,6 +280,38 @@ export function sortNotes(notes: Array<Note>) {
         return 1
     })
     return notes
+}
+
+// squashNotes removes all repeated notes and puts all the notes in the same octave
+// while keeping the same root/lowest note
+// TODO: make a notelist type and add this is a method
+// TODO: unexport
+export function squashNotes(notes: Array<Note>):Array<Note>{
+    notes = sortNotes(notes)
+
+    // remove repeats
+    var has: Map<String, boolean> = new Map();
+    var uniqueNotes: Array<Note> = [];
+    notes.forEach(note => {
+        if (!has.get(note.abstract.string())) {
+            uniqueNotes.push(note.deepCopy())
+            has.set(note.abstract.string(), true)
+        }
+    })
+
+    // squash into one octave
+    var lowest = notes[0]
+    var squashedNotes: Array<Note> = [lowest];
+    for (var i = 1; i < uniqueNotes.length; i++) {
+        var note = notes[i]
+        note.octave = lowest.octave
+        if (note.lowerThan(lowest)) {
+            note.octave++
+        }
+        squashedNotes.push(note)
+    }
+
+    return sortNotes(squashedNotes)
 }
 
 

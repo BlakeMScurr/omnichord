@@ -40,7 +40,7 @@ function physicalBlackKeys(keys: Array<Note>) {
 class Piano {
     // logic
     keys: Array<Note>;
-    pressed: Map<Note, boolean>;
+    pressed: Map<string, Note>;
     chords: ChordSet; // TODO: make a piano output current notes, rather than knowing about chords
     onChordChange: (c: (Chord|undefined)) => void;
 
@@ -67,8 +67,8 @@ class Piano {
 
     currentNotes(): Array<Note>{
         var notes: Array<Note> = [];
-        this.pressed.forEach((isPressed, note) => {
-            if (isPressed) {
+        this.pressed.forEach((note, name) => {
+            if (name) {
                 notes.push(note)
             }
         });
@@ -84,7 +84,7 @@ class Piano {
         var x = 0;
         this.keys.forEach(key => {
             this.context.fillStyle = "#FFFFFF";
-            if (this.pressed.get(key)) {
+            if (this.pressed.has(key.string())) {
                 this.context.fillStyle = "#00FF00";
             }
 
@@ -98,7 +98,7 @@ class Piano {
         var x = 0;
         this.keys.forEach(key => {
             this.context.fillStyle = "#000000";
-            if (this.pressed.get(key)) {
+            if (this.pressed.has(key.string())) {
                 this.context.fillStyle = "#00FF00";
             }
 
@@ -122,44 +122,25 @@ class Piano {
     }
     
     pressKey(note: Note) {
-        this.pressed.set(note, true)
+        this.pressed.set(note.string(), note)
         this.render()
         this.NoteChange()
     }
 
     releaseKey(note: Note) {
-        this.pressed.delete(note)
+        this.pressed.delete(note.string())
         this.render()
         this.NoteChange()
     }
 
     // Handles midi keyboard note playing
     pianoKeyPressed(name: string, octave: number) {
-        this.pressKey(this.getNote(new Note(NewAbstractNote(name), octave)))
+        this.pressKey(new Note(NewAbstractNote(name), octave))
     }
 
     // Handles midi keyboard note releasing
     pianoKeyReleased(name: string, octave: number) {
-        this.releaseKey(this.getNote(new Note(NewAbstractNote(name), octave)))
-    }
-
-    // Get key gets the actual reference to a note on the keyboard from another equivalent note object
-    // This allows us to lookup notes using pressed.indexOF
-    // TODO: be more effiecient
-    getNote(note: Note) {
-        for (var i = 0; i < this.keys.length; i++) {
-            var n = this.keys[i]
-            if (note.equals(n)) {
-                return n
-            }
-        }
-
-        this.pressed.forEach((isPressed, n: Note) => {
-            if (note.equals(n)) {
-                return note = n
-            }
-        });
-        return note
+        this.releaseKey(new Note(NewAbstractNote(name), octave))
     }
 
     // Handles computer keyboard note playing

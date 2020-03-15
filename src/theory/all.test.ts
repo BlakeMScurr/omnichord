@@ -1,4 +1,4 @@
-import { Chord, ChordBook, ChordSet, Note, NewAbstractNote, AbstractNote, sortNotes, NoteOrder } from "./chords";
+import { Chord, ChordBook, ChordSet, Note, NewAbstractNote, AbstractNote, sortNotes, squashNotes, NoteOrder } from "./chords";
 
 test('invert', () => {
     var b = new ChordBook()
@@ -89,6 +89,33 @@ test('recognisingFMajorFirstInversion', () => {
 
     expect(recognisedChord).toEqual(f4MajorTriad1st)
 });
+
+test('squashingClassicFinalChord', () => {
+    expect(squashNotes([
+        nn("c", 4),
+        nn("g", 4),
+        nn("e", 5),
+        nn("c", 6),
+    ])).toEqual([
+        nn("c", 4),
+        nn("e", 4),
+        nn("g", 4),
+    ])
+})
+
+test('recognisingClassicFinalChord', () => {
+    var b = new ChordBook()
+    var notes: Array<Note> = [
+        nn("c", 4),
+        nn("g", 4),
+        nn("e", 5),
+        nn("c", 6),
+    ]
+    var recognisedChord = b.recognise(notes)
+    var c4MajorTriad = b.make(nn("c", 4), "", true, true)
+
+    expect(recognisedChord).toEqual(c4MajorTriad)
+})
 
 function nn(note: string, octave: number) {
     var an = NewAbstractNote(note);
