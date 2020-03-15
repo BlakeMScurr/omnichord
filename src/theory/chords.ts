@@ -48,8 +48,9 @@ export class ChordBook {
             ["6", new ChordType(new Array("Major3rd", "Minor3rd", "Tone"), "6", "6th")],
             ["add9", new ChordType(new Array("Major3rd", "Minor3rd", "Perfect5th"), "add9", "added ninth")],
             ["7", new ChordType(new Array("Major3rd", "Minor3rd", "Minor3rd"), "7", "7th")],
-            ["9", new ChordType(new Array("Major3rd", "Minor3rd", "Minor3rd", "Major3rd"), "9", "9th")],
             [(flat() +"9").sup(), new ChordType(new Array("Major3rd", "Minor3rd", "Minor3rd", "Minor3rd"), (flat() +"9").sup(), "flat 9th")],
+            ["#9".sup(), new ChordType(new Array("Major3rd", "Minor3rd", "Minor3rd", "Perfect4th"), "#9".sup(), "sharp 9th")],
+            ["9", new ChordType(new Array("Major3rd", "Minor3rd", "Minor3rd", "Major3rd"), "9", "9th")],
             ["maj7", new ChordType(new Array("Major3rd", "Minor3rd", "Major3rd"), "maj7", "major 7th")],
             ["maj9", new ChordType(new Array("Major3rd", "Minor3rd", "Major3rd", "Minor3rd"), "maj9", "major 9th")],
 
