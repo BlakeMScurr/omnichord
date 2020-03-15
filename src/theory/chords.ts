@@ -65,7 +65,7 @@ export class ChordBook {
             notes = sortNotes(notes)
             for (const [symbol, value] of this.symbolMap) { 
                 var chord = this.make(notes[0], symbol, true, true)
-                if (chord.equals(notes)) {
+                if (chord.strictEquals(notes)) {
                     return chord
                 }
             }
@@ -258,26 +258,35 @@ export function sortNotes(notes: Array<Note>) {
 export class Chord {
     symbol: string;
     root: Note;
-    highest: Note;
     notes: Array<Note>;
+    inversion: number;
 
     constructor(note: Note) {
         this.symbol = ""
         this.root = note
-        this.highest = note
         this.notes = [note]
+        this.inversion = 0;
     }
 
     stack(interval: string) {
-        var index = NoteOrder.indexOf(this.highest.abstract) + <number>semitonesIn.get(interval)
+        var semitones = semitonesIn.get(interval)
+        if (semitones == undefined) {
+            throw "undefined interval " + interval
+        }
+        var index = NoteOrder.indexOf(this.highest().abstract) + <number>semitones
         var nextAbstractNote = NoteOrder[index % 12]
-        var newNote = new Note(nextAbstractNote, this.highest.octave + Math.floor((this.highest.octave + index)/12));
+        var newNote = new Note(nextAbstractNote, this.highest().octave + Math.floor(index/12));
         this.notes.push(newNote)
-        this.highest = newNote
         return this
     }
 
-    equals(notes: Array<Note>) {
+    highest() {
+        return this.notes[this.notes.length-1]
+    }
+
+    // strictEquals returns true if the notes are the same in strict order, but they remain octave independent
+    // TODO: allow octave checking
+    strictEquals(notes: Array<Note>) {
         notes = sortNotes(notes)
 
         // check notes against chord
@@ -292,5 +301,42 @@ export class Chord {
         }
 
         return true
+    }
+
+    // inversionEquals checks whether the notes are an inversion of the chord and returns the
+    // inversion number if so. If not it returns -1.
+    inversionEquals(notes: Array<Note>) {
+        for (var i = 0; i < this.notes.length; i++) {
+            var inversion = this.invert(i)
+            if (inversion.strictEquals(notes)) {
+                return inversion.inversion
+            }
+        }
+    }
+
+    invert(inversionNumber: number):Chord {
+        var delta = (inversionNumber - this.inversion + this.notes.length) % this.notes.length // avoids js negative modulus funny business
+        var newChord: Chord = this.deepCopy()
+        for (var i = 0; i < delta; i++) {
+            newChord.inversion = (newChord.inversion + 1) % newChord.notes.length
+            var nn = <Note>newChord.notes.shift()
+            nn.octave++
+            newChord.notes.push(nn)
+        }
+        return newChord
+    }
+
+    // voicingEquals checks whether the notes are a voicing of the chord and return the inversion of that chord
+    voicingEquals(notes: Array<Note>) {
+
+    }
+
+    // JSON Parse Stringify doesn't cut it because we don't get deeply typed objects
+    deepCopy() {
+        var newChord = new Chord(this.root)
+        newChord.symbol = this.symbol
+        newChord.inversion = this.inversion
+        newChord.notes = [...this.notes]
+        return newChord
     }
 }

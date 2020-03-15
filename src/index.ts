@@ -112,13 +112,13 @@ class Piano {
 
     NoteChange() {
         // CheckSuccess
-        if (this.chords.getCurrent()?.equals(this.currentNotes())) {
+        if (this.chords.getCurrent()?.strictEquals(this.currentNotes())) {
             this.chords.completeNext()
         }
 
         // Recognise Chord
-        var currCHord = <Chord>book.recognise(this.currentNotes())
-        this.onChordChange(currCHord)
+        var currChord = <Chord>book.recognise(this.currentNotes())
+        this.onChordChange(currChord)
     }
     
     pressKey(note: Note) {
@@ -185,7 +185,7 @@ class Piano {
         }
 
         // handle black notes
-        var blackKeys = ["q", "w","e","r","t","y","u","i","o","p","["]
+        var blackKeys = ["q","w","e","r","t","y","u","i","o","p","["]
         var index = blackKeys.indexOf(key)
         if (index != -1) {
             return physicalBlackKeys(this.keys)[index]

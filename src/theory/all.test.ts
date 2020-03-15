@@ -1,5 +1,27 @@
 import { Chord, ChordBook, ChordSet, Note, NewAbstractNote, AbstractNote, sortNotes, NoteOrder } from "./chords";
 
+test('invert', () => {
+    var b = new ChordBook()
+    var firstInversion = new Chord(nn("e", 4))
+    firstInversion.inversion = 1
+    firstInversion.symbol = "C"
+    firstInversion.stack("Minor3rd")
+    firstInversion.stack("Perfect4th")
+    firstInversion.root = nn("c", 5)
+    expect(b.make(nn("c", 4), "", true, true).invert(1)).toEqual(firstInversion)
+})
+
+test('stack', () => {
+    var b = new ChordBook()
+    var c = new Chord(nn("b", 4))
+    c.stack("Semitone")
+    expect(c.highest()).toEqual(nn("c", 5))
+
+    c = new Chord(nn("g", 4))
+    c.stack("Perfect4th")
+    expect(c.highest()).toEqual(nn("c", 5))
+})
+
 test('newabstractnote', () => {
     expect(NoteOrder.indexOf(nn("c", 4).abstract)).toBe(0)
     expect(NoteOrder.indexOf(nn("a", 4).abstract)).toBe(9)
