@@ -1,5 +1,10 @@
 import { Chord, ChordBook, ChordSet, Note, NewAbstractNote, AbstractNote, sortNotes, squashNotes, NoteOrder } from "./chords";
 
+test('inferInversions', () => {
+    var b = new ChordBook()
+    expect(b.infer("Cmaj7/G")[0]).toEqual(b.infer("Cmaj7")[0].invert(2))
+})
+
 test('invert', () => {
     var b = new ChordBook()
     var firstInversion = new Chord(nn("e", 4))

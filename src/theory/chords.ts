@@ -63,12 +63,40 @@ export class ChordBook {
         var chords: Array<Chord> = [];
         var symbols = text.split(" ")
         symbols.forEach(symbol => {
+            // TODO: use nice regex or something else more succinct
             var root = symbol[0].toLocaleLowerCase();
             if (symbol.includes("#")) {
                 root += "#"
             }
+
+            var flavour: string = symbol;
+            var bassNote: string = "";
+            if (symbol.includes("/")) {
+                bassNote = symbol.substring(symbol.indexOf("/")+1)
+                flavour = symbol.substring(0, symbol.indexOf("/"))
+            }
+
             // start in fourth octave with middle c
-            chords.push(this.make(new Note(NewAbstractNote(root), 4), symbol.substring(root.length), true, true))
+            var newChord = this.make(new Note(NewAbstractNote(root), 4), flavour.substring(root.length), true, true)
+
+            if (bassNote != "") {
+                var inversion = -1;
+                newChord.notes.forEach((note, index)=>{
+                    if (note.abstract.string() == bassNote.toLocaleLowerCase()) {
+                        inversion = index
+                    }
+                })
+
+                if (inversion == -1) {
+                    throw "The chord " + symbol + " doesn't have a " + bassNote + ` note, and slash chords currently denote inversions.
+                    For example, F/G is invalid in the existing system, though it's a reasonable and nice dominant chord.`
+                }
+
+                newChord = newChord.invert(inversion)
+            }
+           
+            chords.push(newChord)
+
         })
         return chords
     }
