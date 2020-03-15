@@ -153,6 +153,12 @@ class Piano {
                 return n
             }
         }
+
+        this.pressed.forEach((isPressed, n: Note) => {
+            if (note.equals(n)) {
+                return note = n
+            }
+        });
         return note
     }
 
