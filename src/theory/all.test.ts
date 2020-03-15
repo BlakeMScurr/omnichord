@@ -116,6 +116,18 @@ test('recognisingExoticVoicings', () => {
     notes = [nn("e", 6), nn("g", 4), nn("g", 5), nn("c", 6)]
     var recognisedChord = b.recognise(notes)
     expect(recognisedChord).toEqual(c5MajorTriad.invert(2))
+
+    // add9
+    var c5add9 = b.make(nn("c", 5), "add9", true, true)
+    notes = [nn("e", 4), nn("g", 4), nn("c", 5), nn("d", 5)]
+    var recognisedChord = b.recognise(notes)
+    expect(recognisedChord).toEqual(c5add9.invert(1))
+
+    // TODO: get this working, but be aware that add9 inversions may unravel your whole conceptual map
+    // Indeed, inversions for root notes about the octave may be the problem. Perhaps we can just squash all chords.
+    // notes = [nn("d", 4), nn("e", 4), nn("g", 4), nn("c", 5)]
+    // var recognisedChord = b.recognise(notes)
+    // expect(recognisedChord).toEqual(c5add9.invert(1))
 })
 
 function nn(note: string, octave: number) {

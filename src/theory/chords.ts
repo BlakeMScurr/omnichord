@@ -34,12 +34,18 @@ export class ChordBook {
             ["sus2", new ChordType(new Array("Tone", "Perfect4th"), "sus2", "suspended second")],
 
             ["dim", new ChordType(new Array("Minor3rd", "Minor3rd"), "dim", "diminished triad")],
+            ["dim7", new ChordType(new Array("Minor3rd", "Minor3rd","Minor3rd"), "m7b5", "diminished 7th")],
+            ["m7b5", new ChordType(new Array("Minor3rd", "Minor3rd","Major3rd"), "m7b5", "half diminished")],
+
             ["m", new ChordType(new Array("Minor3rd", "Major3rd"), "m", "minor triad position")],
             ["m7", new ChordType(new Array("Minor3rd", "Major3rd", "Minor3rd"), "m7", "minor 7th")],
 
             ["", new ChordType(new Array("Major3rd", "Minor3rd"), "", "major triad")],
+            ["6", new ChordType(new Array("Major3rd", "Minor3rd", "Tone"), "6", "6th")],
+            ["add9", new ChordType(new Array("Major3rd", "Minor3rd", "Perfect5th"), "add9", "added ninth")],
             ["7", new ChordType(new Array("Major3rd", "Minor3rd", "Minor3rd"), "7", "7th")],
             ["maj7", new ChordType(new Array("Major3rd", "Minor3rd", "Major3rd"), "maj7", "major 7th")],
+
             ["aug", new ChordType(new Array("Major3rd", "Major3rd"), "aug", "augmented triad")],
 
             ["sus4", new ChordType(new Array("Perfect4th", "Tone"), "sus4", "suspended fourth")],
@@ -84,6 +90,7 @@ export class ChordBook {
                 for (const [symbol, value] of this.symbolMap) { 
                     var chord = this.make(note, symbol, true, true)
                     for (const inversion of chord.inversions()){
+                        inversion.notes = squashNotes(inversion.notes)
                         if (inversion.strictEquals(notes)) {
                             return inversion
                         }
@@ -389,6 +396,11 @@ export class Chord {
             nn.octave++
             newChord.notes.push(nn)
         }
+
+        // Chords whose root positions span multiple octaves like add9 are weird. When we add the root
+        // to the end of the notes array it is not actually the higest note, and thus needs to be sorted again
+        // TODO: new representation, perhaps a distinction between slash chords and inversions, that avoids this confusion
+        newChord.notes = sortNotes(newChord.notes)
         return newChord
     }
 
