@@ -61,7 +61,12 @@ export class ChordBook {
     // infer the right set of chords from a comma separated list of chord symbols
     infer(text: string) {
         var chords: Array<Chord> = [];
-        var symbols = text.split(" ")
+        var symbols = text.trim().split(" ")
+        
+        if (symbols.length == 1 && symbols[0].length == 0) { // TODO: find a nicer workaround - JS is bad and: "".split(" ") -> [""] instead of []
+            symbols = [];
+        }
+
         symbols.forEach(symbol => {
             // TODO: use nice regex or something else more succinct
             var root = symbol[0].toLocaleLowerCase();
@@ -153,10 +158,15 @@ export class ChordBook {
 export class ChordSet {
     current: number;
     chords: Array<Chord>;
+    book: ChordBook;
 
-    constructor () {
+    lastTimeRecordingChord: number;
+
+    constructor (book: ChordBook) {
+        this.book = book;
         this.current = 0
         this.chords = [];
+        this.lastTimeRecordingChord = Date.now();
     }
     
     getCurrent() {
@@ -170,9 +180,14 @@ export class ChordSet {
         this.render()
     }
 
-    reset() {
-        this.current = 0
-        this.render()
+    reactTo(notes: Array<Note>) {
+        if (!this.isRecording()) {
+            if (this.getCurrent()?.strictEquals(notes)) {
+                this.completeNext()
+            }
+        } else {
+            this.record(notes)
+        }
     }
 
     render() {
@@ -187,6 +202,33 @@ export class ChordSet {
         desc = desc.substr(0, desc.lastIndexOf(" "))
         var chordElem = <HTMLParagraphElement>document.querySelector("#chords")
         chordElem.innerHTML = desc
+    }
+
+    // Recording related functions
+
+     // State of a chord set is either recording or checking
+    // if it's recording we are listening for new chords to add to the chart
+    // if it's checking, it's determing whether the notes played have played the correct chord
+    // in the chart
+    // TODO: enum for each state
+    isRecording():boolean {
+        var recordingElem = <HTMLInputElement>document.querySelector("#recording")
+        return recordingElem.checked
+    }
+
+
+    record(notes: Array<Note>) {
+        // TODO: get chord span instead - probably need to ensure we can send empty note sets
+        if (this.lastTimeRecordingChord - Date.now() < 300) {
+            var chord = this.book.recognise(notes)
+            if (chord != undefined) {
+                // TODO: record based on time
+                this.chords.push(chord)
+            }
+
+            this.lastTimeRecordingChord = Date.now()
+            this.render()
+        }
     }
 }
 

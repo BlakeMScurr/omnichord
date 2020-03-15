@@ -112,9 +112,7 @@ class Piano {
 
     NoteChange() {
         // CheckSuccess
-        if (this.chords.getCurrent()?.strictEquals(this.currentNotes())) {
-            this.chords.completeNext()
-        }
+        this.chords.reactTo(this.currentNotes())
 
         // Recognise Chord
         var currChord = <Chord>book.recognise(this.currentNotes())
@@ -197,7 +195,7 @@ function octavesFrom(note: Note, octavesLeft: number) {
 }
 
 let book = new ChordBook()
-let chords = new ChordSet()
+let chords = new ChordSet(book)
 let onChordChange = (chord: (Chord|undefined)) => {
     var currentChord = <HTMLParagraphElement>(document.querySelector("#currentChord"))
     if (chord == undefined) {
@@ -207,7 +205,7 @@ let onChordChange = (chord: (Chord|undefined)) => {
     }
 }
 
-const piano = new Piano(<HTMLCanvasElement>document.querySelector("#piano"), octavesFrom(new Note(NewAbstractNote("c"), 4), 3), chords, onChordChange);
+const piano = new Piano(<HTMLCanvasElement>document.querySelector("#piano"), octavesFrom(new Note(NewAbstractNote("c"), 3), 3), chords, onChordChange);
 
 // Setup interactions
 document.addEventListener('keydown', (event) => {
