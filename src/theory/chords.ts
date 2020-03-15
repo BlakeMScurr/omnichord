@@ -179,9 +179,9 @@ export class ChordSet {
         var desc = "";
         this.chords.forEach((chord, i) => {
             if (i < this.current) {
-                desc += chord.symbol.strike() + " "
+                desc += chord.string().strike() + " "
             } else {
-                desc += chord.symbol + " "
+                desc += chord.string() + " "
             }
         })
         desc = desc.substr(0, desc.lastIndexOf(" "))

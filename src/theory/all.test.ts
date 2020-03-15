@@ -3,6 +3,7 @@ import { Chord, ChordBook, ChordSet, Note, NewAbstractNote, AbstractNote, sortNo
 test('inferInversions', () => {
     var b = new ChordBook()
     expect(b.infer("Cmaj7/G")[0]).toEqual(b.infer("Cmaj7")[0].invert(2))
+    expect(b.infer("Cmaj7")[0].invert(2).string()).toBe("Cmaj7/G")
 })
 
 test('invert', () => {
