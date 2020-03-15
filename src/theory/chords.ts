@@ -289,6 +289,10 @@ export class Chord {
         return this.notes[this.notes.length-1]
     }
 
+    lowest() {
+        return this.notes[0]
+    }
+
     // strictEquals returns true if the notes are the same in strict order, but they remain octave independent
     // TODO: allow octave checking
     strictEquals(notes: Array<Note>) {
@@ -343,5 +347,13 @@ export class Chord {
         newChord.inversion = this.inversion
         newChord.notes = [...this.notes]
         return newChord
+    }
+
+    string() {
+        var inversionSymbol = ""
+        if (this.lowest().abstract.string() != this.root.string()) {
+            inversionSymbol = "/"+ this.lowest().abstract.string()
+        }
+        return this.symbol + inversionSymbol
     }
 }

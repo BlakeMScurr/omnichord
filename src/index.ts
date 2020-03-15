@@ -222,7 +222,7 @@ let onChordChange = (chord: (Chord|undefined)) => {
     if (chord == undefined) {
         currentChord.innerHTML = "-"
     } else {
-        currentChord.innerHTML = (<Chord>(chord)).symbol
+        currentChord.innerHTML = (<Chord>(chord)).string()
     }
 }
 
