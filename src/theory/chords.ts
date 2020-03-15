@@ -31,13 +31,18 @@ export class ChordBook {
     constructor () {
         this.symbolMap = new Map([
             // TODO: remove repeated symbol
-            ["dim", new ChordType(new Array("Minor3rd", "Minor3rd"), "dim", "diminished triad root")],
-            ["m", new ChordType(new Array("Minor3rd", "Major3rd"), "m", "minor triad root position")],
-            ["m7", new ChordType(new Array("Minor3rd", "Major3rd", "Minor3rd"), "m7", "minor 7th root position")],
-            ["", new ChordType(new Array("Major3rd", "Minor3rd"), "", "major triad root position")],
-            ["7", new ChordType(new Array("Major3rd", "Minor3rd", "Minor3rd"), "7", "7th root position")],
-            ["maj7", new ChordType(new Array("Major3rd", "Minor3rd", "Major3rd"), "maj7", "major 7th root position")],
+            ["sus2", new ChordType(new Array("Tone", "Perfect4th"), "sus2", "suspended second")],
+
+            ["dim", new ChordType(new Array("Minor3rd", "Minor3rd"), "dim", "diminished triad")],
+            ["m", new ChordType(new Array("Minor3rd", "Major3rd"), "m", "minor triad position")],
+            ["m7", new ChordType(new Array("Minor3rd", "Major3rd", "Minor3rd"), "m7", "minor 7th")],
+
+            ["", new ChordType(new Array("Major3rd", "Minor3rd"), "", "major triad")],
+            ["7", new ChordType(new Array("Major3rd", "Minor3rd", "Minor3rd"), "7", "7th")],
+            ["maj7", new ChordType(new Array("Major3rd", "Minor3rd", "Major3rd"), "maj7", "major 7th")],
             ["aug", new ChordType(new Array("Major3rd", "Major3rd"), "aug", "augmented triad")],
+
+            ["sus4", new ChordType(new Array("Perfect4th", "Tone"), "sus4", "suspended fourth")],
         ]);
     }
 
