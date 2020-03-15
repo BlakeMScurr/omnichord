@@ -28,23 +28,30 @@ class ChordType {
 export class ChordBook {
     symbolMap: Map<string, ChordType>;
 
+
+
     constructor () {
+        var flat = () => {return "&#9837;"}
         this.symbolMap = new Map([
             // TODO: remove repeated symbol
             ["sus2", new ChordType(new Array("Tone", "Perfect4th"), "sus2", "suspended second")],
 
             ["dim", new ChordType(new Array("Minor3rd", "Minor3rd"), "dim", "diminished triad")],
-            ["dim7", new ChordType(new Array("Minor3rd", "Minor3rd","Minor3rd"), "m7b5", "diminished 7th")],
-            ["m7b5", new ChordType(new Array("Minor3rd", "Minor3rd","Major3rd"), "m7b5", "half diminished")],
+            ["dim7", new ChordType(new Array("Minor3rd", "Minor3rd","Minor3rd"), "dim7", "diminished 7th")],
+            ["m7" + flat() +"5", new ChordType(new Array("Minor3rd", "Minor3rd","Major3rd"), "m7" + flat() +"5", "half diminished")],
 
             ["m", new ChordType(new Array("Minor3rd", "Major3rd"), "m", "minor triad position")],
             ["m7", new ChordType(new Array("Minor3rd", "Major3rd", "Minor3rd"), "m7", "minor 7th")],
+            ["m9", new ChordType(new Array("Minor3rd", "Major3rd", "Minor3rd", "Major3rd"), "m9", "minor9th")],
 
             ["", new ChordType(new Array("Major3rd", "Minor3rd"), "", "major triad")],
             ["6", new ChordType(new Array("Major3rd", "Minor3rd", "Tone"), "6", "6th")],
             ["add9", new ChordType(new Array("Major3rd", "Minor3rd", "Perfect5th"), "add9", "added ninth")],
             ["7", new ChordType(new Array("Major3rd", "Minor3rd", "Minor3rd"), "7", "7th")],
+            ["9", new ChordType(new Array("Major3rd", "Minor3rd", "Minor3rd", "Major3rd"), "9", "9th")],
+            [(flat() +"9").sup(), new ChordType(new Array("Major3rd", "Minor3rd", "Minor3rd", "Minor3rd"), (flat() +"9").sup(), "flat 9th")],
             ["maj7", new ChordType(new Array("Major3rd", "Minor3rd", "Major3rd"), "maj7", "major 7th")],
+            ["maj9", new ChordType(new Array("Major3rd", "Minor3rd", "Major3rd", "Minor3rd"), "maj9", "major 9th")],
 
             ["aug", new ChordType(new Array("Major3rd", "Major3rd"), "aug", "augmented triad")],
 
