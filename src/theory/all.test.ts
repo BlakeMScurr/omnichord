@@ -1,4 +1,9 @@
-import { Chord, ChordBook, ChordSet, Note, NewAbstractNote, AbstractNote, sortNotes } from "./chords";
+import { Chord, ChordBook, ChordSet, Note, NewAbstractNote, AbstractNote, sortNotes, NoteOrder } from "./chords";
+
+test('newabstractnote', () => {
+    expect(NoteOrder.indexOf(nn("c", 4).abstract)).toBe(0)
+    expect(NoteOrder.indexOf(nn("a", 4).abstract)).toBe(9)
+})
 
 test('lower', () => {
     expect(nn("c", 4).lowerThan(nn("c", 5))).toBe(true)
@@ -10,15 +15,15 @@ test('lower', () => {
 test('sorting', () => {
     expect(sortNotes([nn("a", 5), nn("f", 5), nn("d", 5)])).toEqual([nn("d", 5), nn("f", 5), nn("a", 5)])
     expect(sortNotes([nn("c", 5), nn("a", 4), nn("f", 4)])).toEqual([nn("f", 4), nn("a", 4), nn("c", 5)])
-
+    expect(sortNotes([nn("f", 4), nn("a", 4), nn("c", 5)])).toEqual([nn("f", 4), nn("a", 4), nn("c", 5)])
 })
 
 test('recognisingCMajor', () => {
     var b = new ChordBook()
     var notes: Array<Note> = [
         nn("c", 4),
-        nn("e", 4),
         nn("g", 4),
+        nn("e", 4),
     ]
     var recognisedChord = b.recognise(notes)
     var c4MajorTriad = b.make(nn("c", 4), "", true, true)

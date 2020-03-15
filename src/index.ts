@@ -146,7 +146,7 @@ class Piano {
     // Get key gets the actual reference to a note on the keyboard from another equivalent note object
     // This allows us to lookup notes using pressed.indexOF
     // TODO: be more effiecient
-    getNote(note: Note){
+    getNote(note: Note) {
         for (var i = 0; i < this.keys.length; i++) {
             var n = this.keys[i]
             if (note.equals(n)) {

@@ -62,6 +62,7 @@ export class ChordBook {
 
     recognise(notes: Array<Note>):Chord|undefined {
         if (notes.length != 0) {
+            notes = sortNotes(notes)
             for (const [symbol, value] of this.symbolMap) { 
                 var chord = this.make(notes[0], symbol, true, true)
                 if (chord.equals(notes)) {
@@ -189,8 +190,17 @@ export class Note {
     lowerThan(note: Note) {
         if (this.octave < note.octave) {
             return true
+        } else if (this.octave > note.octave) {
+            return false
         }
 
+        if (NoteOrder.indexOf(this.abstract) == -1){
+            throw "can't find this abstract note " + this.abstract.string()
+        }
+
+        if(NoteOrder.indexOf(note.abstract) == -1) {
+            throw "can't find that abstract note " + note.abstract.string()
+        }
         return NoteOrder.indexOf(this.abstract) < NoteOrder.indexOf(note.abstract)
     }
 
