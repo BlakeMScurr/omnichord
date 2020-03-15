@@ -7,8 +7,14 @@ test('invert', () => {
     firstInversion.symbol = "C"
     firstInversion.stack("Minor3rd")
     firstInversion.stack("Perfect4th")
-    firstInversion.root = nn("c", 5)
+    firstInversion.root = nn("c", 4)
     expect(b.make(nn("c", 4), "", true, true).invert(1)).toEqual(firstInversion)
+})
+
+test('inversions', ()=>{
+    var b = new ChordBook()
+    var c = b.make(nn("c", 4), "", true, true)
+    expect(c.inversions().map((inv: Chord)=>{return inv.string()})).toEqual(["C", "C/E", "C/G"])
 })
 
 test('stack', () => {
@@ -38,6 +44,7 @@ test('sorting', () => {
     expect(sortNotes([nn("a", 5), nn("f", 5), nn("d", 5)])).toEqual([nn("d", 5), nn("f", 5), nn("a", 5)])
     expect(sortNotes([nn("c", 5), nn("a", 4), nn("f", 4)])).toEqual([nn("f", 4), nn("a", 4), nn("c", 5)])
     expect(sortNotes([nn("f", 4), nn("a", 4), nn("c", 5)])).toEqual([nn("f", 4), nn("a", 4), nn("c", 5)])
+    expect(sortNotes([nn("f", 5), nn("a", 4), nn("c", 5)])).toEqual([nn("a", 4), nn("c", 5), nn("f", 5)])
 })
 
 test('recognisingCMajor', () => {
@@ -68,6 +75,19 @@ test('recognisingFMajor', () => {
 
     expect(recognisedChord).toEqual(f4MajorTriad)
     expect(recognisedChord?.symbol).toEqual(f3MajorTriad.symbol)
+});
+
+test('recognisingFMajorFirstInversion', () => {
+    var b = new ChordBook()
+    var notes: Array<Note> = [
+        nn("f", 5),
+        nn("a", 4),
+        nn("c", 5),
+    ]
+    var recognisedChord = b.recognise(notes)
+    var f4MajorTriad1st = b.make(nn("f", 5), "", true, true).invert(1)
+
+    expect(recognisedChord).toEqual(f4MajorTriad1st)
 });
 
 function nn(note: string, octave: number) {

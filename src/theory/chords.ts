@@ -68,12 +68,29 @@ export class ChordBook {
     recognise(notes: Array<Note>):Chord|undefined {
         if (notes.length != 0) {
             notes = sortNotes(notes)
+
+            // Check if it's strictly equal to any root chords in it's current position
             for (const [symbol, value] of this.symbolMap) { 
                 var chord = this.make(notes[0], symbol, true, true)
                 if (chord.strictEquals(notes)) {
                     return chord
                 }
             }
+
+            // Check if it's equal to any possible inversions
+            for (var i = 1; i < notes.length; i++) {
+                var note = notes[i]
+                for (const [symbol, value] of this.symbolMap) { 
+                    var chord = this.make(note, symbol, true, true)
+                    for (const inversion of chord.inversions()){
+                        if (inversion.strictEquals(notes)) {
+                            return inversion
+                        }
+                    }
+                }
+            }
+
+            // TODO: check that it's a voicing of some chord
         }
     }
 }
@@ -224,6 +241,12 @@ export class Note {
     equals(note: Note) {
         return this.octave == note.octave && this.abstract.equals(note.abstract)
     }
+
+    deepCopy():Note {
+        // Deep copy is not full, since there should only be a single representation of each abstract note
+        // TODO: change that
+        return new Note(this.abstract, this.octave)
+    }
 }
 
 // TODO: unexport
@@ -312,15 +335,13 @@ export class Chord {
         return true
     }
 
-    // inversionEquals checks whether the notes are an inversion of the chord and returns the
-    // inversion number if so. If not it returns -1.
-    inversionEquals(notes: Array<Note>) {
+    // inversions returns all inversions of the chord
+    inversions():Array<Chord> {
+        var inversions: Array<Chord> = [];
         for (var i = 0; i < this.notes.length; i++) {
-            var inversion = this.invert(i)
-            if (inversion.strictEquals(notes)) {
-                return inversion.inversion
-            }
+            inversions.push(this.invert(i))
         }
+        return inversions
     }
 
     invert(inversionNumber: number):Chord {
@@ -345,14 +366,17 @@ export class Chord {
         var newChord = new Chord(this.root)
         newChord.symbol = this.symbol
         newChord.inversion = this.inversion
-        newChord.notes = [...this.notes]
+        newChord.notes = []
+        this.notes.forEach((note: Note)=>{
+            newChord.notes.push(note.deepCopy())
+        })
         return newChord
     }
 
     string() {
         var inversionSymbol = ""
-        if (this.lowest().abstract.string() != this.root.string()) {
-            inversionSymbol = "/"+ this.lowest().abstract.string()
+        if (this.lowest().abstract.string() != this.root.abstract.string()) {
+            inversionSymbol = "/"+ this.lowest().abstract.string().toLocaleUpperCase()
         }
         return this.symbol + inversionSymbol
     }
