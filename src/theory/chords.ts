@@ -28,8 +28,6 @@ class ChordType {
 export class ChordBook {
     symbolMap: Map<string, ChordType>;
 
-
-
     constructor () {
         var flat = () => {return "&#9837;"}
         this.symbolMap = new Map([
@@ -58,6 +56,21 @@ export class ChordBook {
 
             ["sus4", new ChordType(new Array("Perfect4th", "Tone"), "sus4", "suspended fourth")],
         ]);
+    }
+
+    // infer the right set of chords from a comma separated list of chord symbols
+    infer(text: string) {
+        var chords: Array<Chord> = [];
+        var symbols = text.split(" ")
+        symbols.forEach(symbol => {
+            var root = symbol[0].toLocaleLowerCase();
+            if (symbol.includes("#")) {
+                root += "#"
+            }
+            // start in fourth octave with middle c
+            chords.push(this.make(new Note(NewAbstractNote(root), 4), symbol.substring(root.length), true, true))
+        })
+        return chords
     }
 
     // TODO: voicing booleans as options
@@ -116,23 +129,6 @@ export class ChordSet {
     constructor () {
         this.current = 0
         this.chords = [];
-    }
-
-    // infer the right set of chords from a comma separated list of chord symbols
-    infer(book: ChordBook) {
-        this.chords = [];
-        var chordElem = <HTMLParagraphElement>document.querySelector("#chords")
-        var text = chordElem.innerHTML
-
-        var symbols = text.split(" ")
-        symbols.forEach(symbol => {
-            var root = symbol[0].toLocaleLowerCase();
-            if (symbol.includes("#")) {
-                root += "#"
-            }
-            // start in fourth octave with middle c
-            this.chords.push(book.make(new Note(NewAbstractNote(root), 4), symbol.substring(root.length), false, true))
-        })
     }
     
     getCurrent() {

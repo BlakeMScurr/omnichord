@@ -8,12 +8,12 @@ test('invert', () => {
     firstInversion.stack("Minor3rd")
     firstInversion.stack("Perfect4th")
     firstInversion.root = nn("c", 4)
-    expect(b.make(nn("c", 4), "", true, true).invert(1)).toEqual(firstInversion)
+    expect(b.infer("C")[0].invert(1)).toEqual(firstInversion)
 })
 
 test('inversions', ()=>{
     var b = new ChordBook()
-    var c = b.make(nn("c", 4), "", true, true)
+    var c = b.infer("C")[0]
     expect(c.inversions().map((inv: Chord)=>{return inv.string()})).toEqual(["C", "C/E", "C/G"])
 })
 
@@ -55,7 +55,7 @@ test('recognisingCMajor', () => {
         nn("e", 4),
     ]
     var recognisedChord = b.recognise(notes)
-    var c4MajorTriad = b.make(nn("c", 4), "", true, true)
+    var c4MajorTriad = b.infer("C")[0]
     var c3MajorTriad = b.make(nn("c", 3), "", true, true)
 
     expect(recognisedChord).toEqual(c4MajorTriad)
@@ -70,22 +70,20 @@ test('recognisingFMajor', () => {
         nn("c", 5),
     ]
     var recognisedChord = b.recognise(notes)
-    var f4MajorTriad = b.make(nn("f", 4), "", true, true)
-    var f3MajorTriad = b.make(nn("f", 3), "", true, true)
+    var fmajorTriad = b.infer("F")[0]
 
-    expect(recognisedChord).toEqual(f4MajorTriad)
-    expect(recognisedChord?.symbol).toEqual(f3MajorTriad.symbol)
+    expect(recognisedChord).toEqual(fmajorTriad)
 });
 
 test('recognisingFMajorFirstInversion', () => {
     var b = new ChordBook()
     var notes: Array<Note> = [
-        nn("f", 5),
-        nn("a", 4),
-        nn("c", 5),
+        nn("f", 4),
+        nn("a", 3),
+        nn("c", 4),
     ]
     var recognisedChord = b.recognise(notes)
-    var f4MajorTriad1st = b.make(nn("f", 5), "", true, true).invert(1)
+    var f4MajorTriad1st = b.infer("F")[0].invert(1)
 
     expect(recognisedChord).toEqual(f4MajorTriad1st)
 });
@@ -107,19 +105,19 @@ test('squashingClassicFinalChord', () => {
 test('recognisingExoticVoicings', () => {
     var b = new ChordBook()
 
-    var c4MajorTriad = b.make(nn("c", 4), "", true, true)
+    var c4MajorTriad = b.infer("C")[0]
     var notes: Array<Note> = [nn("c", 4),nn("g", 4),nn("e", 5),nn("c", 6)]
     var recognisedChord = b.recognise(notes)
     expect(recognisedChord).toEqual(c4MajorTriad)
 
-    var c5MajorTriad = b.make(nn("c", 5), "", true, true)
-    notes = [nn("e", 6), nn("g", 4), nn("g", 5), nn("c", 6)]
+    var c5MajorTriad = b.infer("C")[0]
+    notes = [nn("e", 5), nn("g", 3), nn("g", 4), nn("c", 5)]
     var recognisedChord = b.recognise(notes)
     expect(recognisedChord).toEqual(c5MajorTriad.invert(2))
 
     // add9
-    var c5add9 = b.make(nn("c", 5), "add9", true, true)
-    notes = [nn("e", 4), nn("g", 4), nn("c", 5), nn("d", 5)]
+    var c5add9 = b.infer("Cadd9")[0]
+    notes = [nn("e", 3), nn("g", 3), nn("c", 4), nn("d", 4)]
     var recognisedChord = b.recognise(notes)
     expect(recognisedChord).toEqual(c5add9.invert(1))
 

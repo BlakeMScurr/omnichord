@@ -245,9 +245,11 @@ changeChordsButton.onclick = function() {
     var chordsParagraph = <HTMLParagraphElement>document.querySelector("#chords");
     chordsParagraph.innerHTML = newChordTextArea.value
     newChordTextArea.value = ""
-    chords.infer(book)
+    chords.chords = book.infer(chordsParagraph.innerHTML)
 };
-chords.infer(book)
+
+var chordsParagraph = <HTMLParagraphElement>document.querySelector("#chords");
+chords.chords = book.infer(chordsParagraph.innerHTML)
 
 
 
