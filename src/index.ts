@@ -14,7 +14,7 @@ function whiteKeys(keys: Array<Note>) {
 }
 
 function white(key: Note) {
-    return !key.abstract.sharp
+    return !key.abstract.accidental
 }
 
 // Black keys includes ghost black keys like the key that would be between b and c

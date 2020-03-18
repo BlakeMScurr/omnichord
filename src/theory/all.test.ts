@@ -8,9 +8,8 @@ test('inferInversions', () => {
 
 test('invert', () => {
     var b = new ChordBook()
-    var firstInversion = new Chord(nn("e", 4))
+    var firstInversion = new Chord(nn("e", 4), "", 0)
     firstInversion.inversion = 1
-    firstInversion.symbol = "C"
     firstInversion.stack("Minor3rd")
     firstInversion.stack("Perfect4th")
     firstInversion.root = nn("c", 4)
@@ -25,11 +24,11 @@ test('inversions', ()=>{
 
 test('stack', () => {
     var b = new ChordBook()
-    var c = new Chord(nn("b", 4))
+    var c = new Chord(nn("b", 4), "", 0)
     c.stack("Semitone")
     expect(c.highest()).toEqual(nn("c", 5))
 
-    c = new Chord(nn("g", 4))
+    c = new Chord(nn("g", 4), "", 0)
     c.stack("Perfect4th")
     expect(c.highest()).toEqual(nn("c", 5))
 })
@@ -107,6 +106,46 @@ test('squashingClassicFinalChord', () => {
         [nn("g", 4), nn("c", 5), nn("e", 5)]
     )
 })
+
+test('enharmonicRendering', () => {
+    expect(NewAbstractNote("c").enharmonicEquivalent()).toBe("c")
+    expect(NewAbstractNote("f").enharmonicEquivalent()).toBe("f")
+    expect(NewAbstractNote("b").enharmonicEquivalent()).toBe("b")
+
+    expect(NewAbstractNote("c#").enharmonicEquivalent()).toBe("db")
+    expect(NewAbstractNote("f#").enharmonicEquivalent()).toBe("gb")
+    expect(NewAbstractNote("a#").enharmonicEquivalent()).toBe("bb")
+
+    expect(NewAbstractNote("ab").string()).toBe("g#")
+    expect(NewAbstractNote("eb").string()).toBe("d#")
+
+    var b = new ChordBook()
+    // Non sharps should render normally
+    expect(b.infer("C")[0].string()).toBe("C")
+    expect(b.infer("Fm")[0].string()).toBe("Fm")
+
+    // Flatter chords should render as flat
+    expect(b.infer("D#")[0].string()).toBe("Eb")
+    expect(b.infer("Eb")[0].string()).toBe("Eb")
+    expect(b.infer("G#maj7")[0].string()).toBe("Abmaj7")
+    expect(b.infer("Abmaj7")[0].string()).toBe("Abmaj7")
+
+    // Sharper chords should render as sharp
+    expect(b.infer("C#m")[0].string()).toBe("C#m")
+
+    // Tricky off beat modal chords
+    expect(b.infer("G#dim")[0].string()).toBe("G#dim")
+    expect(b.infer("Bbm7b5")[0].string()).toBe("A#m7b5")
+
+    // Slash roots on flatter chords should render as flat if applicable
+    expect(b.infer("Eb/A#")[0].string()).toBe("Eb/Bb")
+    expect(b.infer("Eb/Bb")[0].string()).toBe("Eb/Bb")
+
+    // // TODO:
+    // // Slash chords of accidental notes should render accordingly
+    // expect(b.infer("Eb#9/F#")[0].string()).toBe("Eb#9/F#")
+    // expect(b.infer("Eb#9/Gb")[0].string()).toBe("Eb#9/Gb")
+});
 
 test('recognisingExoticVoicings', () => {
     var b = new ChordBook()

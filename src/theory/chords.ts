@@ -18,10 +18,15 @@ class ChordType {
     symbol: string;
     description: string;
 
-    constructor(intervals: Array<string>, symbol: string, description: string) {
+    // The chord implies a key. How many sharps does that key have? This is used to figure out
+    // the natural representation of the chord - i.e., D# or Eb major 7.
+    sharpsInC: number;
+
+    constructor(intervals: Array<string>, symbol: string, description: string, sharpsInC: number) {
         this.symbol = symbol
         this.description = description
         this.intervals = intervals
+        this.sharpsInC = sharpsInC
     }
 }
 
@@ -29,32 +34,33 @@ export class ChordBook {
     symbolMap: Map<string, ChordType>;
 
     constructor () {
-        var flat = () => {return "&#9837;"}
+        // var flat = () => {return "&#9837;"}
+        var flat = () => {return "b"} // TODO: render proper html entity
         this.symbolMap = new Map([
             // TODO: remove repeated symbol
-            ["sus2", new ChordType(new Array("Tone", "Perfect4th"), "sus2", "suspended second")],
+            ["sus2", new ChordType(new Array("Tone", "Perfect4th"), "sus2", "suspended second", 0)],
 
-            ["dim", new ChordType(new Array("Minor3rd", "Minor3rd"), "dim", "diminished triad")],
-            ["dim7", new ChordType(new Array("Minor3rd", "Minor3rd","Minor3rd"), "dim7", "diminished 7th")],
-            ["m7" + flat() +"5", new ChordType(new Array("Minor3rd", "Minor3rd","Major3rd"), "m7" + flat() +"5", "half diminished")],
+            ["dim", new ChordType(new Array("Minor3rd", "Minor3rd"), "dim", "diminished triad", -5)],
+            ["dim7", new ChordType(new Array("Minor3rd", "Minor3rd","Minor3rd"), "dim7", "diminished 7th", -5)],
+            ["m7" + flat() +"5", new ChordType(new Array("Minor3rd", "Minor3rd","Major3rd"), "m7" + flat() +"5", "half diminished", -5)],
 
-            ["m", new ChordType(new Array("Minor3rd", "Major3rd"), "m", "minor triad position")],
-            ["m7", new ChordType(new Array("Minor3rd", "Major3rd", "Minor3rd"), "m7", "minor 7th")],
-            ["m9", new ChordType(new Array("Minor3rd", "Major3rd", "Minor3rd", "Major3rd"), "m9", "minor9th")],
+            ["m", new ChordType(new Array("Minor3rd", "Major3rd"), "m", "minor triad position", -3)],
+            ["m7", new ChordType(new Array("Minor3rd", "Major3rd", "Minor3rd"), "m7", "minor 7th", -3)],
+            ["m9", new ChordType(new Array("Minor3rd", "Major3rd", "Minor3rd", "Major3rd"), "m9", "minor9th", -3)],
 
-            ["", new ChordType(new Array("Major3rd", "Minor3rd"), "", "major triad")],
-            ["6", new ChordType(new Array("Major3rd", "Minor3rd", "Tone"), "6", "6th")],
-            ["add9", new ChordType(new Array("Major3rd", "Minor3rd", "Perfect5th"), "add9", "added ninth")],
-            ["7", new ChordType(new Array("Major3rd", "Minor3rd", "Minor3rd"), "7", "7th")],
-            [(flat() +"9").sup(), new ChordType(new Array("Major3rd", "Minor3rd", "Minor3rd", "Minor3rd"), (flat() +"9").sup(), "flat 9th")],
-            ["#9".sup(), new ChordType(new Array("Major3rd", "Minor3rd", "Minor3rd", "Perfect4th"), "#9".sup(), "sharp 9th")],
-            ["9", new ChordType(new Array("Major3rd", "Minor3rd", "Minor3rd", "Major3rd"), "9", "9th")],
-            ["maj7", new ChordType(new Array("Major3rd", "Minor3rd", "Major3rd"), "maj7", "major 7th")],
-            ["maj9", new ChordType(new Array("Major3rd", "Minor3rd", "Major3rd", "Minor3rd"), "maj9", "major 9th")],
+            ["", new ChordType(new Array("Major3rd", "Minor3rd"), "", "major triad", 0)],
+            ["6", new ChordType(new Array("Major3rd", "Minor3rd", "Tone"), "6", "6th", 0)],
+            ["add9", new ChordType(new Array("Major3rd", "Minor3rd", "Perfect5th"), "add9", "added ninth", 0)],
+            ["7", new ChordType(new Array("Major3rd", "Minor3rd", "Minor3rd"), "7", "7th", -1)],
+            [(flat() +"9"), new ChordType(new Array("Major3rd", "Minor3rd", "Minor3rd", "Minor3rd"), (flat() +"9"), "flat 9th", -4)],
+            ["#9", new ChordType(new Array("Major3rd", "Minor3rd", "Minor3rd", "Perfect4th"), "#9", "sharp 9th", -4)],
+            ["9", new ChordType(new Array("Major3rd", "Minor3rd", "Minor3rd", "Major3rd"), "9", "9th", -1)],
+            ["maj7", new ChordType(new Array("Major3rd", "Minor3rd", "Major3rd"), "maj7", "major 7th", 0)],
+            ["maj9", new ChordType(new Array("Major3rd", "Minor3rd", "Major3rd", "Minor3rd"), "maj9", "major 9th", 0)],
 
-            ["aug", new ChordType(new Array("Major3rd", "Major3rd"), "aug", "augmented triad")],
+            ["aug", new ChordType(new Array("Major3rd", "Major3rd"), "aug", "augmented triad", 0)],
 
-            ["sus4", new ChordType(new Array("Perfect4th", "Tone"), "sus4", "suspended fourth")],
+            ["sus4", new ChordType(new Array("Perfect4th", "Tone"), "sus4", "suspended fourth", 0)],
         ]);
     }
 
@@ -70,8 +76,12 @@ export class ChordBook {
         symbols.forEach(symbol => {
             // TODO: use nice regex or something else more succinct
             var root = symbol[0].toLocaleLowerCase();
-            if (symbol.includes("#")) {
+            if (symbol[1] == "#") {
                 root += "#"
+            }
+
+            if (symbol[1] == "b") {
+                root += "b"
             }
 
             var flavour: string = symbol;
@@ -87,7 +97,7 @@ export class ChordBook {
             if (bassNote != "") {
                 var inversion = -1;
                 newChord.notes.forEach((note, index)=>{
-                    if (note.abstract.string() == bassNote.toLocaleLowerCase()) {
+                    if (note.abstract.string() == bassNote.toLocaleLowerCase() || note.abstract.enharmonicEquivalent() == bassNote.toLocaleLowerCase()) {
                         inversion = index
                     }
                 })
@@ -108,16 +118,15 @@ export class ChordBook {
 
     // TODO: voicing booleans as options
     make(root: Note, symbol: string, octaveIndependent: boolean, voicingIndependent: boolean) {
-        var chord = new Chord(root);
-        chord.symbol = root.abstract.string().toUpperCase() + symbol
-
+        
         // Ensure the chord type exists
         // TODO: more succinct way - does ? throw an error?
         var possibleType = this.symbolMap.get(symbol)
         if (!possibleType) {
-            throw "chord " + symbol + "unknown"
+            throw "chord " + symbol + " unknown"
         }
         var type = <ChordType>possibleType
+        var chord = new Chord(root, symbol, type.sharpsInC);
 
         type.intervals.forEach((interval) => {
             chord.stack(interval);
@@ -160,13 +169,14 @@ export class ChordSet {
     chords: Array<Chord>;
     book: ChordBook;
 
-    lastTimeRecordingChord: number;
+    // recording related fields
+    noteSetIndex: number;
 
     constructor (book: ChordBook) {
         this.book = book;
         this.current = 0
         this.chords = [];
-        this.lastTimeRecordingChord = Date.now();
+        this.noteSetIndex = 0;
     }
     
     getCurrent() {
@@ -218,24 +228,29 @@ export class ChordSet {
 
 
     record(notes: Array<Note>) {
-        // TODO: get chord span instead - probably need to ensure we can send empty note sets
-        if (this.lastTimeRecordingChord - Date.now() < 300) {
-            var chord = this.book.recognise(notes)
-            if (chord != undefined) {
-                // TODO: record based on time
-                this.chords.push(chord)
-            }
+        this.noteSetIndex++
 
-            this.lastTimeRecordingChord = Date.now()
-            this.render()
+        var chord = this.book.recognise(notes)
+        if (chord != undefined) {
+            var noteSetIndex = this.noteSetIndex
+            // Interval allows us to record chords with subchords. I.e., if Fmaj7 were played, F or Am
+            // are subchords that likely would have been played milliseconds before
+            setTimeout(() => {
+                if (noteSetIndex == this.noteSetIndex) {
+                    this.chords.push(<Chord>chord)
+                    this.render()
+                }
+            }, 100);
         }
+
+
     }
 }
 
 // Abstract notes like B and F# don't depend on octaves
 export class AbstractNote {
     letter: string;
-    sharp: boolean; // We only handle sharps in fundamental representation, enharmonic flats are a rendering issue
+    accidental: boolean; // We only handle accidentals in fundamental representation, enharmonic flats are a rendering issue
     constructor(name: string) {
         if (name.length == 0 || name.length > 2) {
             throw "invalid note name length " + name.length + " for note " + name
@@ -251,15 +266,23 @@ export class AbstractNote {
             throw "only sharps are valid accidentals, got " + name[1] + " from " + name
         }
 
-        this.sharp = name.length == 2
+        this.accidental = name.length == 2
     }
     
     string() {
         var str = this.letter
-        if (this.sharp) {
+        if (this.accidental) {
             str += "#"
         }
         return str
+    }
+
+    enharmonicEquivalent() {
+        if (!this.accidental) {
+            return this.string()
+        }
+
+        return NoteOrder[(NoteOrder.indexOf(this)+1)%12].letter + "b"
     }
 
     next() {
@@ -269,7 +292,7 @@ export class AbstractNote {
     }
 
     equals(note: AbstractNote) {
-        return this.letter == note.letter && this.sharp == note.sharp
+        return this.letter == note.letter && this.accidental == note.accidental
     }
 }
 
@@ -332,6 +355,10 @@ export function NewAbstractNote(name: string) {
     for (var i = 0; i < NoteOrder.length; i++ ) {
         var note = NoteOrder[i]
         if (note.string() == name) {
+            return note
+        }
+
+        if (note.enharmonicEquivalent() == name) {
             return note
         }
     }
@@ -405,12 +432,14 @@ export class Chord {
     root: Note;
     notes: Array<Note>;
     inversion: number;
+    sharpsInC: number;
 
-    constructor(note: Note) {
-        this.symbol = ""
+    constructor(note: Note, symbol: string, sharpsInC: number) {
+        this.symbol = symbol
         this.root = note
         this.notes = [note]
         this.inversion = 0;
+        this.sharpsInC = sharpsInC
     }
 
     stack(interval: string) {
@@ -485,8 +514,7 @@ export class Chord {
 
     // JSON Parse Stringify doesn't cut it because we don't get deeply typed objects
     deepCopy() {
-        var newChord = new Chord(this.root)
-        newChord.symbol = this.symbol
+        var newChord = new Chord(this.root, this.symbol, this.sharpsInC)
         newChord.inversion = this.inversion
         newChord.notes = []
         this.notes.forEach((note: Note)=>{
@@ -496,10 +524,42 @@ export class Chord {
     }
 
     string() {
+        // Stuff to figure out whether to render as flat or not
+        var sharpsImpliedByChord = <number>sharps.get(this.root.abstract.string())+ this.sharpsInC
+        var isFlat = sharpsImpliedByChord < 0 && sharpsImpliedByChord >= -5
+        var enharmRender = (note: Note) => {
+            if (isFlat) {
+                var x = note.abstract.enharmonicEquivalent()
+                if (x.length == 1) {
+                    return x.toLocaleUpperCase()
+                }
+                return x[0].toLocaleUpperCase() + x[1]
+            } else {
+                return note.abstract.string().toLocaleUpperCase()
+            }
+        }
+
+        // Stuff to handle the slash root note
         var inversionSymbol = ""
         if (this.lowest().abstract.string() != this.root.abstract.string()) {
-            inversionSymbol = "/"+ this.lowest().abstract.string().toLocaleUpperCase()
+            inversionSymbol = "/"+ enharmRender(this.lowest())
         }
-        return this.symbol + inversionSymbol
+
+        return enharmRender(this.root) + this.symbol + inversionSymbol
     }
 }
+
+const sharps: Map<string, number> = new Map([
+    ["c#", -5],
+    ["g#", -4],
+    ["d#", -3],
+    ["a#", -2],
+    ["f", -1],
+    ["c", 0],
+    ["g", 1],
+    ["d", 2],
+    ["a", 3],
+    ["e", 4],
+    ["b", 5],
+    ["f#", 6],
+])
