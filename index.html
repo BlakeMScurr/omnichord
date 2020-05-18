@@ -22,12 +22,13 @@
         div {
             float: left;
         }
+        
+        #container {
+            display: flex;
+        }
+
         #chart {
             align-items: center;
-        }
-        #chart, #yt {
-            display: inline-block;
-            width: 50%;
         }
     </style>
 </head>
@@ -35,22 +36,22 @@
     <div>
         <canvas id="piano"></canvas>
     </div>
-    <div>
-        <!-- <div id="yt">
+    <div id="container">
+        <div id="yt">
             <div id="player"></div>
             <script src="js/yt.js"></script>
-        </div> -->
+        </div>
         <div id="chart">   
             <h2>Current Chord:</h2>
             <p id="currentChord">-</p>
             <h2>Chords:</h2>
-            <p id="chords">C Em/B Am C/G F C/E D7 G7</p>
-            <textarea id="newChords"></textarea>
-            <button id="changeChords">Change Chords</button>
+            <p id="chords"></p>
 
             <br>
-            <input type="checkbox" id=recording>
-            <label for="recording">Recording New Chords</label>
+            <input type="checkbox" checked="true" id=recording>
+            <label for="recording">Recording</label>
+        </div>
+        <div id="score">
         </div>
         <script src="./dist/bundle.js"></script>    
     </div>

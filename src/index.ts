@@ -1,5 +1,6 @@
 import WebMidi, { InputEventNoteon, InputEventNoteoff } from "webmidi";
-import { Chord, ChordBook, ChordSet, Note, NewAbstractNote, noteString } from "./theory/chords";
+import { Chord, ChordBook, Note, NewAbstractNote, noteString } from "./music/theory/chords";
+import { Chart } from "./music/chart/chart"
 // import { Player } from "./youtube/youtube"
 
 // TODO: merge with blackKeys
@@ -41,7 +42,7 @@ class Piano {
     // logic
     keys: Array<Note>;
     pressed: Map<string, Note>;
-    chords: ChordSet; // TODO: make a piano output current notes, rather than knowing about chords
+    chords: Chart; // TODO: make a piano output current notes, rather than knowing about chords
     onChordChange: (c: (Chord|undefined)) => void;
 
     // rendering
@@ -50,7 +51,7 @@ class Piano {
     height: number;
     keyWidth: number;
 
-    constructor(canvas: HTMLCanvasElement, keys: Array<Note>, chords: ChordSet, onChordChange: (c: (Chord|undefined)) => void) {
+    constructor(canvas: HTMLCanvasElement, keys: Array<Note>, chords: Chart, onChordChange: (c: (Chord|undefined)) => void) {
         this.onChordChange = onChordChange
         this.context = <CanvasRenderingContext2D>canvas.getContext('2d')
         this.keys = keys
@@ -195,7 +196,7 @@ function octavesFrom(note: Note, octavesLeft: number) {
 }
 
 let book = new ChordBook()
-let chords = new ChordSet(book)
+let chords = new Chart(book)
 let onChordChange = (chord: (Chord|undefined)) => {
     var currentChord = <HTMLParagraphElement>(document.querySelector("#currentChord"))
     if (chord == undefined) {
@@ -231,20 +232,6 @@ WebMidi.enable(function (err) {
         });
     } catch (e) {}
 });
-
-var changeChordsButton = <HTMLButtonElement>document.querySelector("#changeChords")
-changeChordsButton.onclick = function() {
-    var newChordTextArea = <HTMLTextAreaElement>document.querySelector("#newChords");
-    var chordsParagraph = <HTMLParagraphElement>document.querySelector("#chords");
-    chordsParagraph.innerHTML = newChordTextArea.value
-    newChordTextArea.value = ""
-    chords.chords = book.infer(chordsParagraph.innerHTML)
-};
-
-var chordsParagraph = <HTMLParagraphElement>document.querySelector("#chords");
-chords.chords = book.infer(chordsParagraph.innerHTML)
-
-
 
 // initial rendering
 piano.render();
