@@ -1,6 +1,7 @@
 import WebMidi, { InputEventNoteon, InputEventNoteoff } from "webmidi";
 import { Chord, ChordBook, Note, NewAbstractNote, noteString } from "./music/theory/chords";
 import { Chart } from "./music/chart/chart"
+import { Score } from "./music/score/score"
 // import { Player } from "./youtube/youtube"
 
 // TODO: merge with blackKeys
@@ -60,7 +61,7 @@ class Piano {
         this.width = window.innerWidth
 
         this.keyWidth = this.width / (whiteKeys(this.keys).length)
-        this.height = 300;
+        this.height = window.innerHeight * 0.25;
         canvas.width = this.width
         canvas.height = this.height
         this.chords = chords
@@ -233,7 +234,21 @@ WebMidi.enable(function (err) {
     } catch (e) {}
 });
 
+var score = new Score();
+
+var prev = <HTMLButtonElement>document.querySelector("#previousPage")
+var next = <HTMLButtonElement>document.querySelector("#nextPage")
+next.onclick = () => {
+    console.log("turning to next page")
+    score.nextPage()
+}
+prev.onclick = () => {
+    console.log("previouspage")
+    score.previousPage()
+}
+
 // initial rendering
+score.render();
 piano.render();
 chords.render();
 

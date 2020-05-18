@@ -102,8 +102,8 @@ export class Chart {
             desc += newChord + " "
         })
         desc = desc.substr(0, desc.lastIndexOf(" "))
-        var chordElem = <HTMLParagraphElement>document.querySelector("#chords")
-        chordElem.innerHTML = desc
+        // var chordElem = <HTMLParagraphElement>document.querySelector("#chords")
+        // chordElem.innerHTML = desc
     }
 
     // Recording related functions
