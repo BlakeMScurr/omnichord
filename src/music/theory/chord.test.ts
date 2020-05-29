@@ -1,4 +1,4 @@
-import { Chord, ChordBook, Note, NewAbstractNote, AbstractNote, sortNotes, squashNotes, NoteOrder } from "./chords";
+import { Chord, ChordBook, Note, NewAbstractNote, sortNotes, squashNotes, NoteOrder } from "./chords";
 
 test('inferInversions', () => {
     var b = new ChordBook()

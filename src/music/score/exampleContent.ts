@@ -79,19 +79,19 @@ export const content = `<?xml version="1.0" encoding="UTF-8"?>
             <direction-type>
             <metronome parentheses="no">
                 <beat-unit>quarter</beat-unit>
-                <per-minute>156</per-minute>
+                <per-minute>120</per-minute>
                 </metronome>
             </direction-type>
-            <sound tempo="156"></sound>
+            <sound tempo="120"></sound>
             </direction>
         <direction placement="above">
             <direction-type>
             <metronome parentheses="no">
                 <beat-unit>quarter</beat-unit>
-                <per-minute>156</per-minute>
+                <per-minute>120</per-minute>
                 </metronome>
             </direction-type>
-            <sound tempo="156"></sound>
+            <sound tempo="120"></sound>
             </direction>
         <direction placement="above">
             <direction-type>
@@ -102,10 +102,10 @@ export const content = `<?xml version="1.0" encoding="UTF-8"?>
             <direction-type>
             <metronome parentheses="no">
                 <beat-unit>quarter</beat-unit>
-                <per-minute>156</per-minute>
+                <per-minute>120</per-minute>
                 </metronome>
             </direction-type>
-            <sound tempo="156"></sound>
+            <sound tempo="120"></sound>
             </direction>
         <note default-x="71.83" default-y="-15.00">
             <pitch>
@@ -281,7 +281,7 @@ export const content = `<?xml version="1.0" encoding="UTF-8"?>
             <stem>down</stem>
             <beam number="1">continue</beam>
             </note>
-        <note default-x="156.78" default-y="-20.00">
+        <note default-x="120.78" default-y="-20.00">
             <pitch>
             <step>B</step>
             <octave>4</octave>
@@ -2973,7 +2973,7 @@ export const content = `<?xml version="1.0" encoding="UTF-8"?>
             <stem>down</stem>
             <beam number="1">continue</beam>
             </note>
-        <note default-x="156.78" default-y="-110.00">
+        <note default-x="120.78" default-y="-110.00">
             <pitch>
             <step>E</step>
             <octave>3</octave>

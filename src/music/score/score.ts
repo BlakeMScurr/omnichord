@@ -1,5 +1,5 @@
 import { OpenSheetMusicDisplay, Cursor, VoiceEntry, Note, StemDirectionType, PageFormat, unitInPixels, Fraction, SourceMeasure } from "opensheetmusicdisplay";
-import { content } from "./exampleContent"
+import { content } from "./exampleContent2"
 
 export class Score {
 	currentPage: number;
@@ -16,7 +16,8 @@ export class Score {
 		var sheet = this.osmd.Sheet
 
 		var measureLength = (measure: SourceMeasure) => {
-			return measure.TempoInBPM * measure.ActiveTimeSignature.Denominator
+			// gives number of seconds in the measure
+			return 1 / (measure.TempoInBPM / 60) * measure.ActiveTimeSignature.Denominator
 		}
 
 		// Seek location by looping through bars
@@ -26,8 +27,8 @@ export class Score {
 		for (var i = 0; i < sheet.SourceMeasures.length; i++) {
 			var measure = sheet.SourceMeasures[i] 
 			var length = measureLength(measure)
-			if (position + length < seconds) {
-				// The true location 
+			if (position < seconds) {
+				// the true location must be in a later bar
 				position += length
 			} else {
 				// TODO: finding the particular note in question rather than returning the time at the start of the bar
@@ -66,22 +67,10 @@ export class Score {
 	}
 
 	render () {
-		console.log('rendering')
-		let osmd: OpenSheetMusicDisplay;
+		document.body.appendChild(this.container);
 
 		let h = window.innerHeight * 0.75
 		this.container.style.height = h + ""
-		/*
-		* ... and attach it to our HTML document's body. The document itself is a HTML5
-		* stub created by Webpack, so you won't find any actual .html sources.
-		*/
-		document.body.appendChild(this.container);
-		/*
-		* Create a new instance of OpenSheetMusicDisplay and tell it to draw inside
-		* the container we've created in the steps before.
-		* The second parameter is an IOSMDOptions object.
-		* autoResize tells OSMD not to redraw on resize.
-		*/
 		var pixelToCM = 0.2645833333
 		this.osmd.setCustomPageFormat(window.innerWidth * pixelToCM, h * pixelToCM)
 		this.osmd.setLogLevel('info');
@@ -97,6 +86,7 @@ export class Score {
 			);
 
 		/** Some example code to use OSMD classes after rendering a score. */
+		let osmd: OpenSheetMusicDisplay;
 		function afterRender() {
 			let cursor: Cursor = osmd.cursor;
 			cursor.show();

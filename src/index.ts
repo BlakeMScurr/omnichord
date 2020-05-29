@@ -238,6 +238,7 @@ var score = new Score();
 
 var prev = <HTMLButtonElement>document.querySelector("#previousPage")
 var next = <HTMLButtonElement>document.querySelector("#nextPage")
+var test = <HTMLButtonElement>document.querySelector("#tester")
 next.onclick = () => {
     console.log("turning to next page")
     score.nextPage()
@@ -245,6 +246,10 @@ next.onclick = () => {
 prev.onclick = () => {
     console.log("previouspage")
     score.previousPage()
+}
+test.onclick = () => {
+    console.log("found location:")
+    console.log(score.findLocation(10))
 }
 
 // initial rendering
